@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Authentication App</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <h2>Dashboard</h2>
+            </div>
+            <div class="nav-menu">
+                <span id="userEmail" class="user-info"></span>
+                <button id="logoutBtn" class="btn btn-secondary">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="dashboard-container">
+        <div class="welcome-section">
+            <h1>Welcome to Your Dashboard</h1>
+            <p>You have successfully logged in to the authentication system.</p>
+        </div>
+
+        <div class="dashboard-content">
+            <div class="card">
+                <h3>User Information</h3>
+                <div id="userDetails" class="user-details">
+                    <!-- User details will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Quick Actions</h3>
+                <div class="action-buttons">
+                    <button class="btn action-btn">Profile Settings</button>
+                    <button class="btn action-btn">Security</button>
+                    <button class="btn action-btn">Preferences</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script src="js/dashboard.js"></script>
+</body>
+</html>
