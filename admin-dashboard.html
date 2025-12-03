@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <h2>Admin Dashboard</h2>
+            </div>
+            <div class="nav-menu">
+                <span id="userEmail" class="user-info"></span>
+                <button id="manageUsersBtn" class="btn btn-primary">Manage Users</button>
+                <button id="logoutBtn" class="btn btn-secondary">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="dashboard-container">
+        <div class="welcome-section admin-welcome">
+            <h1>Welcome, Admin!</h1>
+            <p>You have full administrative access to manage your company.</p>
+        </div>
+
+        <div class="dashboard-content">
+            <div class="card admin-card">
+                <h3>Admin Controls</h3>
+                <div class="admin-controls">
+                    <button id="addUserBtn" class="btn action-btn admin-action">
+                        <span class="action-icon">+</span>
+                        Add New Employee
+                    </button>
+                    <button id="viewUsersBtn" class="btn action-btn admin-action">
+                        <span class="action-icon">👥</span>
+                        View All Employees
+                    </button>
+                    <button id="reportsBtn" class="btn action-btn admin-action">
+                        <span class="action-icon">📊</span>
+                        Generate Reports
+                    </button>
+                    <button id="settingsBtn" class="btn action-btn admin-action">
+                        <span class="action-icon">⚙️</span>
+                        Company Settings
+                    </button>
+                </div>
+            </div>
+
+            <div class="card admin-card">
+                <h3>Quick Stats</h3>
+                <div class="stats-container">
+                    <div class="stat-item">
+                        <span class="stat-label">Total Employees</span>
+                        <span id="totalEmployees" class="stat-value">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Active Users</span>
+                        <span id="activeUsers" class="stat-value">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Pending Invites</span>
+                        <span id="pendingInvites" class="stat-value">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card admin-card">
+                <h3>Recent Activity</h3>
+                <div id="recentActivity" class="activity-list">
+                    <p>No recent activity</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add User Modal -->
+    <div id="addUserModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add New Employee</h3>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="addUserForm">
+                    <div class="form-group">
+                        <label for="firstName">First Name</label>
+                        <input type="text" id="firstName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="lastName">Last Name</label>
+                        <input type="text" id="lastName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="employeeEmail">Email Address</label>
+                        <input type="email" id="employeeEmail" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="phoneMobile">Mobile Phone</label>
+                        <input type="tel" id="phoneMobile" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="gender">Gender</label>
+                        <select id="gender" required>
+                            <option value="">Select Gender</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                            <option value="kutta">kutta</option>
+                            <option value="helecoptor">helecoptor</option>
+                            <option value="mixed">mixed</option>
+                            <option value="Ak47">Ak47</option>
+                            <option value="M47 leppord">M47 leppord</option>
+                            <option value="Porshe gt3rs">Porshe gt3rs</option>
+                            <option value="USKI X^2">USKI X^2</option>
+                            <option value="modi">modi</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="hireDate">Hire Date</label>
+                        <input type="date" id="hireDate" required>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn">Add Employee</button>
+                        <button type="button" class="btn btn-secondary close-modal">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script src="js/admin-dashboard.js"></script>
+</body>
+</html>

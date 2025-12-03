@@ -13,7 +13,7 @@ class AuthApp {
         
         // Check if user is already logged in
         if (authAPI.isAuthenticated()) {
-            this.redirectToDashboard();
+            this.redirectBasedOnRole();
         }
     }
 
@@ -213,8 +213,50 @@ class AuthApp {
                 localStorage.setItem('token', result.data.token);
                 localStorage.setItem('user', JSON.stringify(result.data.user));
                 
+                // Extract and store employee ID if available
+                if (result.data.Employee && result.data.Employee.employeeId) {
+                    console.log('Employee ID found in login response:', result.data.Employee.employeeId);
+                    localStorage.setItem('currentEmployeeId', result.data.Employee.employeeId);
+                    localStorage.setItem('employeeData', JSON.stringify(result.data.Employee));
+                } else if (result.data.employeeId) {
+                    // Alternative: check if employeeId is at root level
+                    console.log('Employee ID at root level:', result.data.employeeId);
+                    localStorage.setItem('currentEmployeeId', result.data.employeeId);
+                }
+                
+                // Determine and store role based on response
+                let userRole = 'EMPLOYEE'; // Default role
+                
+                // Check if response has roles field (for admin)
+                if (result.data.roles) {
+                    userRole = result.data.roles;
+                } 
+                // Check role from token
+                else if (result.data.user?.role) {
+                    userRole = result.data.user.role;
+                }
+                // Check if user email contains admin pattern
+                else if (this.userEmail.includes('admin') || this.userEmail.includes('Admin')) {
+                    userRole = 'COMPANY_ADMIN';
+                }
+                
+                localStorage.setItem('userRole', userRole);
+                
+                // Store company ID
+                if (result.data.user?.companyId) {
+                    localStorage.setItem('companyId', result.data.user.companyId);
+                }
+                
+                console.log('Login successful, stored data:', {
+                    token: result.data.token.substring(0, 20) + '...',
+                    userId: result.data.user?.userId,
+                    employeeId: localStorage.getItem('currentEmployeeId'),
+                    role: userRole,
+                    companyId: localStorage.getItem('companyId')
+                });
+                
                 setTimeout(() => {
-                    this.redirectToDashboard();
+                    this.redirectBasedOnRole();
                 }, 1500);
             } else {
                 this.showMessage(result.data.message || 'Login failed. Please check your credentials.', 'error');
@@ -224,7 +266,6 @@ class AuthApp {
             this.showMessage('Error during login. Please try again.', 'error');
         }
     }
-
     async handleRegister() {
         const companyName = this.companyNameInput.value.trim();
         const domain = this.domainInput.value.trim();
@@ -266,8 +307,21 @@ class AuthApp {
                 localStorage.setItem('token', result.data.token);
                 localStorage.setItem('user', JSON.stringify(result.data.user));
                 
+                // Store employee ID if available
+                if (result.data.Employee && result.data.Employee.employeeId) {
+                    localStorage.setItem('currentEmployeeId', result.data.Employee.employeeId);
+                }
+                
+                // Company registration is always admin
+                localStorage.setItem('userRole', 'COMPANY_ADMIN');
+                
+                // Store company ID
+                if (result.data.user?.companyId) {
+                    localStorage.setItem('companyId', result.data.user.companyId);
+                }
+                
                 setTimeout(() => {
-                    this.redirectToDashboard();
+                    this.redirectBasedOnRole();
                 }, 1500);
             } else {
                 this.showMessage(result.data.message || 'Registration failed. Please try again.', 'error');
@@ -318,8 +372,21 @@ class AuthApp {
                 localStorage.setItem('token', result.data.token);
                 localStorage.setItem('user', JSON.stringify(result.data.user));
                 
+                // Store employee ID if available
+                if (result.data.Employee && result.data.Employee.employeeId) {
+                    localStorage.setItem('currentEmployeeId', result.data.Employee.employeeId);
+                }
+                
+                // Employee registration is usually regular user
+                localStorage.setItem('userRole', result.data.roles || 'EMPLOYEE');
+                
+                // Store company ID
+                if (result.data.user?.companyId) {
+                    localStorage.setItem('companyId', result.data.user.companyId);
+                }
+                
                 setTimeout(() => {
-                    this.redirectToDashboard();
+                    this.redirectBasedOnRole();
                 }, 1500);
             } else {
                 this.showMessage(result.data.message || 'Employee registration failed. Please check the OTP and try again.', 'error');
@@ -329,7 +396,7 @@ class AuthApp {
             this.showMessage('Error during employee registration. Please try again.', 'error');
         }
     }
-
+    
     async handleResendOTP() {
         // For now, we'll just show a message since the backend might automatically resend OTP
         // In a real implementation, you might call a separate endpoint to resend OTP
@@ -347,6 +414,17 @@ class AuthApp {
             this.showMessage('Error resending OTP. Please try again.', 'error');
         }
         */
+    }
+    redirectBasedOnRole() {
+        const role = authAPI.getUserRole();
+        
+        console.log('Redirecting based on role:', role); // Debug log
+        
+        if (role === 'COMPANY_ADMIN') {
+            window.location.href = 'admin-dashboard.html';
+        } else {
+            window.location.href = 'dashboard.html';
+        }
     }
 
     redirectToDashboard() {

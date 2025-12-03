@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance - Clock In/Out</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <h2>Attendance System</h2>
+            </div>
+            <div class="nav-menu">
+                <button id="backToDashboard" class="btn btn-secondary">← Back to Dashboard</button>
+                <button id="logoutBtn" class="btn btn-secondary">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="dashboard-container">
+        <div class="welcome-section attendance-welcome">
+            <h1>Attendance Management</h1>
+            <p id="welcomeMessage">Mark your attendance for today</p>
+        </div>
+
+        <div class="attendance-container">
+            <!-- Current Status Card -->
+            <div class="card status-card">
+                <h3>Today's Status</h3>
+                <div id="currentStatus" class="status-display">
+                    <div class="loading-spinner"></div>
+                    <p>Loading your attendance status...</p>
+                </div>
+            </div>
+
+            <!-- Clock In/Out Card -->
+            <div class="card action-card">
+                <h3>Mark Attendance</h3>
+                <div class="attendance-actions">
+                    <div class="form-group">
+                        <label for="location">Location</label>
+                        <input type="text" id="location" placeholder="Enter your location (e.g., Office Mumbai)" value="Office">
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <button id="clockInBtn" class="btn btn-success action-btn" disabled>
+                            <span class="action-icon">🕐</span>
+                            Clock In
+                        </button>
+                        <button id="clockOutBtn" class="btn btn-danger action-btn" disabled>
+                            <span class="action-icon">🕔</span>
+                            Clock Out
+                        </button>
+                    </div>
+                    
+                    <div id="attendanceMessage" class="message"></div>
+                </div>
+            </div>
+
+            <!-- Recent Attendance History -->
+            <div class="card history-card">
+                <h3>Recent Attendance</h3>
+                <div class="date-filter">
+                    <div class="form-group">
+                        <label for="startDate">From</label>
+                        <input type="date" id="startDate">
+                    </div>
+                    <div class="form-group">
+                        <label for="endDate">To</label>
+                        <input type="date" id="endDate">
+                    </div>
+                    <button id="filterBtn" class="btn btn-primary">Filter</button>
+                </div>
+                
+                <div class="attendance-history">
+                    <table id="attendanceTable">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Clock In</th>
+                                <th>Clock Out</th>
+                                <th>Location</th>
+                                <th>Hours</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="attendanceTableBody">
+                            <!-- Attendance records will be loaded here -->
+                        </tbody>
+                    </table>
+                    <div id="loadingAttendance" class="loading">
+                        <div class="spinner"></div>
+                        <p>Loading attendance records...</p>
+                    </div>
+                    <div id="noAttendance" class="empty-state">
+                        <p>No attendance records found</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script src="js/attendance.js"></script>
+</body>
+</html>

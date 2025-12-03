@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Users - Admin</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <h2>Manage Users</h2>
+            </div>
+            <div class="nav-menu">
+                <button id="backToDashboard" class="btn btn-secondary">← Back to Dashboard</button>
+                <button id="logoutBtn" class="btn btn-secondary">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="dashboard-container">
+        <div class="welcome-section">
+            <h1>Employee Management</h1>
+            <p>Manage all employees in your company</p>
+        </div>
+
+        <div class="action-bar">
+            <button id="addNewEmployeeBtn" class="btn">+ Add New Employee</button>
+            <div class="search-box">
+                <input type="text" id="searchEmployees" placeholder="Search employees...">
+                <button id="searchBtn">🔍</button>
+            </div>
+        </div>
+
+        <div class="users-table-container">
+            <table id="employeesTable">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Gender</th>
+                        <th>Hire Date</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="employeesTableBody">
+                    <!-- Employees will be loaded here -->
+                </tbody>
+            </table>
+            <div id="loadingEmployees" class="loading">
+                <div class="spinner"></div>
+                <p>Loading employees...</p>
+            </div>
+            <div id="noEmployees" class="empty-state">
+                <p>No employees found. Add your first employee!</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script src="js/manage-users.js"></script>
+</body>
+</html>

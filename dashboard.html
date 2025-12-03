@@ -1,16 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Authentication App</title>
+    <title>My Dashboard</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
+
 <body>
     <nav class="navbar">
         <div class="nav-container">
             <div class="nav-brand">
-                <h2>Dashboard</h2>
+                <h2>Employee Dashboard</h2>
             </div>
             <div class="nav-menu">
                 <span id="userEmail" class="user-info"></span>
@@ -18,27 +20,80 @@
             </div>
         </div>
     </nav>
+    <div class="card action-card">
+        <h3>Mark Attendance</h3>
+        <div class="attendance-actions">
+            <div class="action-buttons">
+                <button id="clockInBtn" class="btn btn-success action-btn" disabled>
+                    <span class="action-icon">🕐</span>
+                    Clock In
+                </button>
+                <button id="clockOutBtn" class="btn btn-danger action-btn" disabled>
+                    <span class="action-icon">🕔</span>
+                    Clock Out
+                </button>
+            </div>
 
+            <div id="attendanceMessage" class="message"></div>
+
+            <div class="attendance-warnings">
+                <p><small>⚠️ You can only clock in once per session. Clock out before starting a new session.</small>
+                </p>
+                <p><small>📊 Multiple clock ins/outs are allowed in a day for different sessions.</small></p>
+            </div>
+        </div>
+    </div>
     <div class="dashboard-container">
-        <div class="welcome-section">
-            <h1>Welcome to Your Dashboard</h1>
-            <p>You have successfully logged in to the authentication system.</p>
+        <div class="welcome-section user-welcome">
+            <h1>Welcome Back!</h1>
+            <p id="welcomeMessage">You're logged in as an employee.</p>
         </div>
 
         <div class="dashboard-content">
-            <div class="card">
-                <h3>User Information</h3>
-                <div id="userDetails" class="user-details">
-                    <!-- User details will be populated by JavaScript -->
+            <div class="card user-card">
+                <h3>My Profile</h3>
+                <div id="userProfile" class="user-details">
+                    <!-- User profile will be populated by JavaScript -->
                 </div>
             </div>
 
-            <div class="card">
+            <div class="card user-card">
                 <h3>Quick Actions</h3>
-                <div class="action-buttons">
-                    <button class="btn action-btn">Profile Settings</button>
-                    <button class="btn action-btn">Security</button>
-                    <button class="btn action-btn">Preferences</button>
+                <div class="user-actions">
+                    <button class="btn action-btn user-action">
+                        <span class="action-icon">👤</span>
+                        Update Profile
+                    </button>
+                    <button id="attendanceBtn" class="btn action-btn user-action">
+                        <span class="action-icon">🕐</span>
+                        Mark Attendance
+                    </button>
+                    <button class="btn action-btn user-action">
+                        <span class="action-icon">🔒</span>
+                        Change Password
+                    </button>
+                    <button class="btn action-btn user-action">
+                        <span class="action-icon">📋</span>
+                        View Tasks
+                    </button>
+                    <button class="btn action-btn user-action">
+                        <span class="action-icon">📊</span>
+                        View Reports
+                    </button>
+                </div>
+            </div>
+
+            <div class="card user-card">
+                <h3>Recent Activity</h3>
+                <div id="userActivity" class="activity-list">
+                    <div class="activity-item">
+                        <div class="activity-icon">✅</div>
+                        <div class="activity-details">
+                            <strong>Logged In</strong>
+                            <span class="activity-text">Successfully logged into the system</span>
+                            <span class="activity-time">Just now</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -47,4 +102,5 @@
     <script src="js/auth.js"></script>
     <script src="js/dashboard.js"></script>
 </body>
+
 </html>

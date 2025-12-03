@@ -1,4 +1,4 @@
-// Dashboard functionality
+// Dashboard functionality for regular users
 class Dashboard {
     constructor() {
         this.init();
@@ -11,6 +11,12 @@ class Dashboard {
             return;
         }
 
+        // Redirect admin users to admin dashboard
+        if (authAPI.isAdmin()) {
+            window.location.href = 'admin-dashboard.html';
+            return;
+        }
+
         this.bindEvents();
         this.loadUserData();
     }
@@ -18,7 +24,14 @@ class Dashboard {
     bindEvents() {
         this.logoutBtn = document.getElementById('logoutBtn');
         this.userEmail = document.getElementById('userEmail');
-        this.userDetails = document.getElementById('userDetails');
+        this.userProfile = document.getElementById('userProfile');
+        this.welcomeMessage = document.getElementById('welcomeMessage');
+        this.attendanceBtn = document.getElementById('attendanceBtn');
+        if (this.attendanceBtn) {
+            this.attendanceBtn.addEventListener('click', () => {
+                window.location.href = 'attendance.html';
+            });
+        }
 
         this.logoutBtn.addEventListener('click', () => {
             authAPI.logout();
@@ -27,34 +40,50 @@ class Dashboard {
 
     loadUserData() {
         const user = authAPI.getCurrentUser();
-        
+        const role = authAPI.getUserRole();
+
         if (user) {
             // Display user email in navbar
             this.userEmail.textContent = user.email;
-            
-            // Display user details
-            this.userDetails.innerHTML = `
-                <div class="user-detail-item">
-                    <span class="user-detail-label">User ID:</span>
-                    <span class="user-detail-value">${user.userId}</span>
-                </div>
-                <div class="user-detail-item">
-                    <span class="user-detail-label">Email:</span>
-                    <span class="user-detail-value">${user.email}</span>
-                </div>
-                <div class="user-detail-item">
-                    <span class="user-detail-label">Company ID:</span>
-                    <span class="user-detail-value">${user.companyId}</span>
-                </div>
-                <div class="user-detail-item">
-                    <span class="user-detail-label">Account Created:</span>
-                    <span class="user-detail-value">${new Date(user.createdAt).toLocaleDateString()}</span>
-                </div>
-                <div class="user-detail-item">
-                    <span class="user-detail-label">Status:</span>
-                    <span class="user-detail-value">${user.isActive ? 'Active' : 'Inactive'}</span>
-                </div>
-            `;
+
+            // Update welcome message based on role
+            if (this.welcomeMessage) {
+                if (role === 'EMPLOYEE') {
+                    this.welcomeMessage.textContent = 'You\'re logged in as an employee.';
+                } else {
+                    this.welcomeMessage.textContent = `You're logged in as ${role.toLowerCase().replace('_', ' ')}.`;
+                }
+            }
+
+            // Display user profile details
+            if (this.userProfile) {
+                this.userProfile.innerHTML = `
+                    <div class="user-detail-item">
+                        <span class="user-detail-label">Name:</span>
+                        <span class="user-detail-value">${user.username || user.email.split('@')[0]}</span>
+                    </div>
+                    <div class="user-detail-item">
+                        <span class="user-detail-label">Email:</span>
+                        <span class="user-detail-value">${user.email}</span>
+                    </div>
+                    <div class="user-detail-item">
+                        <span class="user-detail-label">User ID:</span>
+                        <span class="user-detail-value">${user.userId}</span>
+                    </div>
+                    <div class="user-detail-item">
+                        <span class="user-detail-label">Company ID:</span>
+                        <span class="user-detail-value">${user.companyId}</span>
+                    </div>
+                    <div class="user-detail-item">
+                        <span class="user-detail-label">Account Created:</span>
+                        <span class="user-detail-value">${new Date(user.createdAt).toLocaleDateString()}</span>
+                    </div>
+                    <div class="user-detail-item">
+                        <span class="user-detail-label">Status:</span>
+                        <span class="user-detail-value">${user.isActive ? 'Active' : 'Inactive'}</span>
+                    </div>
+                `;
+            }
         }
     }
 }
