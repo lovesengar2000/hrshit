@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Assets</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <h2>Manage Assets</h2>
+            </div>
+            <div class="nav-menu">
+                <button id="backToDashboard" class="btn btn-secondary">← Back to Dashboard</button>
+                <button id="addAssetBtn" class="btn btn-primary">+ Add Asset</button>
+                <button id="logoutBtn" class="btn btn-secondary">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="dashboard-container">
+        <div class="welcome-section">
+            <h1>Company Assets</h1>
+            <p>Manage all company assets and equipment</p>
+        </div>
+
+        <div class="action-bar">
+            <div class="filter-options">
+                <select id="typeFilter">
+                    <option value="all">All Types</option>
+                    <option value="Laptop">Laptop</option>
+                    <option value="Desktop">Desktop</option>
+                    <option value="Mobile">Mobile</option>
+                    <option value="Tablet">Tablet</option>
+                    <option value="Other">Other</option>
+                </select>
+                <input type="text" id="searchAssets" placeholder="Search by asset tag or serial...">
+            </div>
+        </div>
+
+        <div class="assets-table-container">
+            <table id="assetsTable">
+                <thead>
+                    <tr>
+                        <th>Asset Tag</th>
+                        <th>Type</th>
+                        <th>Model</th>
+                        <th>Serial Number</th>
+                        <th>Condition</th>
+                        <th>Purchase Date</th>
+                        <th>Warranty Expiry</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="assetsTableBody">
+                    <!-- Assets will be loaded here -->
+                </tbody>
+            </table>
+            <div id="loadingAssets" class="loading">
+                <div class="spinner"></div>
+                <p>Loading assets...</p>
+            </div>
+            <div id="noAssets" class="empty-state">
+                <p>No assets found</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Asset Modal -->
+    <div id="assetModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Add New Asset</h3>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="assetForm">
+                    <input type="hidden" id="assetId">
+                    <div class="form-group">
+                        <label for="assetTag">Asset Tag*</label>
+                        <input type="text" id="assetTag" placeholder="e.g., LPT-001" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="assetType">Type*</label>
+                        <select id="assetType" required>
+                            <option value="">Select Type</option>
+                            <option value="Laptop">Laptop</option>
+                            <option value="Desktop">Desktop</option>
+                            <option value="Mobile">Mobile Phone</option>
+                            <option value="Tablet">Tablet</option>
+                            <option value="Monitor">Monitor</option>
+                            <option value="Printer">Printer</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="model">Model</label>
+                        <input type="text" id="model" placeholder="e.g., MacBook Pro 16">
+                    </div>
+                    <div class="form-group">
+                        <label for="serialNumber">Serial Number*</label>
+                        <input type="text" id="serialNumber" placeholder="Enter serial number" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="condition">Condition</label>
+                        <select id="condition">
+                            <option value="">Select Condition</option>
+                            <option value="New">New</option>
+                            <option value="Good">Good</option>
+                            <option value="Fair">Fair</option>
+                            <option value="Poor">Poor</option>
+                            <option value="Damaged">Damaged</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="purchaseDate">Purchase Date</label>
+                        <input type="date" id="purchaseDate">
+                    </div>
+                    <div class="form-group">
+                        <label for="purchaseCost">Purchase Cost ($)</label>
+                        <input type="number" id="purchaseCost" min="0" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label for="warrantyExpiry">Warranty Expiry</label>
+                        <input type="date" id="warrantyExpiry">
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn" id="modalSubmitBtn">Add Asset</button>
+                        <button type="button" class="btn btn-secondary close-modal">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script src="js/manage-assets.js"></script>
+</body>
+</html>

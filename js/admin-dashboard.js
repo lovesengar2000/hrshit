@@ -35,6 +35,8 @@ class AdminDashboard {
         this.settingsBtn = document.getElementById('settingsBtn');
         this.userEmail = document.getElementById('userEmail');
         this.addUserForm = document.getElementById('addUserForm');
+        this.manageLeaveBtn = document.getElementById('manageLeaveBtn');
+        this.manageAssetsBtn = document.getElementById('manageAssetsBtn');
         
         // Modal elements
         this.modal = document.getElementById('addUserModal');
@@ -46,7 +48,8 @@ class AdminDashboard {
         this.viewUsersBtn.addEventListener('click', () => this.viewAllEmployees());
         this.reportsBtn.addEventListener('click', () => this.generateReports());
         this.settingsBtn.addEventListener('click', () => this.showSettings());
-
+        this.manageLeaveBtn.addEventListener('click', () => this.goToManageLeave());
+        this.manageAssetsBtn.addEventListener('click', () => this.goToManageAssets());
         // Add user form submission
         if (this.addUserForm) {
             this.addUserForm.addEventListener('submit', (e) => this.handleAddUser(e));
@@ -110,7 +113,7 @@ class AdminDashboard {
             this.showStatsError();
         }
     }
-
+    
     showStatsError() {
         document.getElementById('totalEmployees').textContent = 'Error';
         document.getElementById('activeUsers').textContent = 'Error';
@@ -152,6 +155,13 @@ class AdminDashboard {
     goToManageUsers() {
         window.location.href = 'manage-users.html';
     }
+    goToManageLeave() {
+        window.location.href = 'manage-leave.html';
+    }
+
+    goToManageAssets() {
+        window.location.href = 'manage-assets.html';
+    }   
 
     showAddUserModal() {
         if (this.modal) {

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apply for Leave</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <h2>Apply for Leave</h2>
+            </div>
+            <div class="nav-menu">
+                <button id="backToDashboard" class="btn btn-secondary">← Back to Dashboard</button>
+                <button id="logoutBtn" class="btn btn-secondary">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="dashboard-container">
+        <div class="welcome-section">
+            <h1>Apply for Leave</h1>
+            <p>Submit your leave application for approval</p>
+        </div>
+
+        <div class="form-container">
+            <div id="message" class="message"></div>
+            <div id="loading" class="loading">
+                <div class="spinner"></div>
+                <p>Processing...</p>
+            </div>
+
+            <form id="applyLeaveForm">
+                <div class="form-group">
+                    <label for="leaveType">Leave Type</label>
+                    <select id="leaveType" required>
+                        <option value="">Select Leave Type</option>
+                        <!-- Options will be populated by JavaScript -->
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="startDate">Start Date</label>
+                    <input type="date" id="startDate" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="endDate">End Date</label>
+                    <input type="date" id="endDate" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="reason">Reason for Leave</label>
+                    <textarea id="reason" rows="4" placeholder="Please provide a reason for your leave..." required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Total Days: <span id="totalDays">0</span></label>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn">Submit Leave Application</button>
+                    <button type="button" id="cancelBtn" class="btn btn-secondary">Cancel</button>
+                </div>
+            </form>
+
+            <div class="leave-balance-section">
+                <h3>Your Leave Balance</h3>
+                <div id="leaveBalance" class="leave-balance-cards">
+                    <!-- Leave balance will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script src="js/apply-leave.js"></script>
+</body>
+</html>
