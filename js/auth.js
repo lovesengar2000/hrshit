@@ -1,7 +1,7 @@
 // Authentication API functions
 class AuthAPI {
   constructor() {
-    this.IsProd = false; // Set to true in production
+    this.IsProd = true; // Set to true in production
     this.baseURL = this.IsProd
       ? "https://corey-unhypnotizable-sippingly.ngrok-free.dev"
       : "http://localhost:3000";
@@ -619,6 +619,7 @@ class AuthAPI {
           headers: {
             Authorization: `JWT ${token}`,
             "Content-Type": "application/json",
+            "ngrok-skip-browser-warning": "true",
             Accept: "application/json",
           },
         }
@@ -1424,6 +1425,140 @@ class AuthAPI {
       throw error;
     }
   }
+
+  async createAsset(assetData) {
+    try {
+      const token = this.getToken();
+      if (!token) throw new Error("No authentication token found");
+
+      const companyId = this.getCompanyId();
+      if (!companyId) throw new Error("No company ID found");
+
+      const response = await fetch(`${this.BASE_URL}/assets`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          companyId: companyId,
+          "Content-Type": "application/json",
+          "ngrok-skip-browser-warning": "true",
+        },
+        body: JSON.stringify({
+          ...assetData,
+          companyId: companyId,
+        }),
+      });
+
+      const data = await response.json();
+      return {
+        success: response.ok || response.status === 200,
+        status: response.status,
+        data: data,
+      };
+    } catch (error) {
+      console.error("Error creating asset:", error);
+      throw error;
+    }
+  }
+
+  async addAsset(assetData) {
+    // Alias for createAsset
+    return this.createAsset(assetData);
+  }
+
+  async updateAsset(assetId, assetData) {
+    try {
+      const token = this.getToken();
+      if (!token) throw new Error("No authentication token found");
+
+      const companyId = this.getCompanyId();
+      if (!companyId) throw new Error("No company ID found");
+
+      const response = await fetch(`${this.BASE_URL}/assets`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          companyId: companyId,
+          "Content-Type": "application/json",
+          "ngrok-skip-browser-warning": "true",
+        },
+        body: JSON.stringify({
+          assetId: assetId,
+          ...assetData,
+          companyId: companyId,
+        }),
+      });
+
+      const data = await response.json();
+      return {
+        success: response.ok || response.status === 200,
+        status: response.status,
+        data: data,
+      };
+    } catch (error) {
+      console.error("Error updating asset:", error);
+      throw error;
+    }
+  }
+
+  async deleteAsset(assetId) {
+    try {
+      const token = this.getToken();
+      if (!token) throw new Error("No authentication token found");
+
+      const companyId = this.getCompanyId();
+
+      const response = await fetch(`${this.BASE_URL}/assets`, {
+          body: JSON.stringify({ assetId: assetId }),
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          companyId: companyId,
+          "Content-Type": "application/json",
+          "ngrok-skip-browser-warning": "true",
+        },
+      });
+
+      const data = await response.json();
+      return {
+        success: response.ok || response.status === 200,
+        status: response.status,
+        data: data,
+      };
+    } catch (error) {
+      console.error("Error deleting asset:", error);
+      throw error;
+    }
+  }
+
+  async getAssets(companyId) {
+    try {
+      const token = this.getToken();
+      if (!token) throw new Error("No authentication token found");
+
+      const company = companyId || this.getCompanyId();
+
+      const response = await fetch(`${this.BASE_URL}/assets?companyId=${encodeURIComponent(company)}`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          companyId: company,
+          "Content-Type": "application/json",
+          "ngrok-skip-browser-warning": "true",
+        },
+      });
+
+      const data = await response.json();
+      return {
+        success: response.ok,
+        status: response.status,
+        data: data,
+      };
+    } catch (error) {
+      console.error("Error fetching assets:", error);
+      throw error;
+    }
+  }
+
   // NOTE: getAllLeaveRequests is implemented later; this earlier duplicate removed.
 
   // Get leave requests for current user
@@ -2371,3 +2506,16 @@ class AuthAPI {
 }
 // Create global auth instance
 const authAPI = new AuthAPI();
+
+var options = {
+  method: 'GET',
+  hostname: 'localhost',
+  port: 3000,
+  path: '/api/v1/assets',
+  headers: {
+    authorization: 'Bearer <YOUR_TOKEN>',
+    companyId: '036e971a-31aa-43ab-b900-764ef88abf6b',
+    'ngrok-skip-browser-warning': 'true'
+  },
+  maxRedirects: 20
+};

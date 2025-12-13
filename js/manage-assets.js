@@ -260,11 +260,12 @@ class ManageAssets {
         try {
             const result = await authAPI.deleteAsset(assetId);
             
-            if (result.success) {
+            const ok = result && (result.success || result.status === 200);
+            if (ok) {
                 alert('Asset deleted successfully!');
                 this.loadAssets(); // Refresh the list
             } else {
-                alert(`Failed to delete asset: ${result.data?.message || 'Unknown error'}`);
+                alert(`Failed to delete asset: ${result?.data?.message || 'Unknown error'}`);
             }
         } catch (error) {
             console.error('Error deleting asset:', error);
