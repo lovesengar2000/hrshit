@@ -8,6 +8,7 @@ class AuthAPI {
     this.API_BASE_URL = `${this.baseURL}/api/v1/auth`;
     this.EMPLOYEES_API = `${this.baseURL}/api/v1`;
     this.BASE_URL = `${this.baseURL}/api/v1`;
+    this.leaveAPI = `${this.baseURL}/api/v1/leave`;
   }
 
   async checkEmail(email) {
@@ -138,8 +139,8 @@ class AuthAPI {
               const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
               summaryMap[key].usedDays += days;
               const url = `${
-                this.BASE_URL
-              }/leave/balance?companyId=${encodeURIComponent(
+                this.leaveAPI
+              }/balance?companyId=${encodeURIComponent(
                 company
               )}&employeeId=${encodeURIComponent(eid)}`;
             }
@@ -1372,12 +1373,37 @@ class AuthAPI {
       return [];
     }
   }
+  async  GetComapnyLeaveTypes() {
+    try {
+      const token = this.getToken();
+      if (!token) throw new Error("No authentication token found");
+
+      const response = await fetch(`${this.leaveAPI}/`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+          companyId: this.getCompanyId(),
+        }
+      });
+
+      const data = await response.json();
+      return {
+        success: response.ok,
+        status: response.status,
+        data: data,
+      };
+    } catch (error) {
+      console.error("Error creating leave type:", error);
+      throw error;
+    }
+  }
   async createLeaveType(leaveTypeData) {
     try {
       const token = this.getToken();
       if (!token) throw new Error("No authentication token found");
 
-      const response = await fetch(`${this.BASE_URL}/leave/createLeave`, {
+      const response = await fetch(`${this.leaveAPI}/createLeave`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -1563,8 +1589,8 @@ class AuthAPI {
 
       const company = this.getCompanyId();
       const url = `${
-        this.BASE_URL
-      }/leave/allLeaveRequest?companyId=${encodeURIComponent(company)}`;
+        this.leaveAPI
+      }/allLeaveRequest?companyId=${encodeURIComponent(company)}`;
       const response = await fetch(url, {
         method: "GET",
         headers: {
@@ -1669,7 +1695,7 @@ class AuthAPI {
       if (!userLeaves.success || !Array.isArray(userLeaves.data)) {
         return {
           success: false,
-          data: this.getDefaultLeaveBalance(),
+          data:  await this.getDefaultLeaveBalance(),
           message: "Failed to fetch leave balance",
         };
       }
@@ -1685,6 +1711,7 @@ class AuthAPI {
 
       // Count days for each leave type
       const leaveTypeCounts = {};
+
 
       approvedLeaves.forEach((leave) => {
         const leaveTypeId = leave.leaveTypeId || "default";
@@ -1711,44 +1738,59 @@ class AuthAPI {
 
       return {
         success: true,
-        data: balance.length > 0 ? balance : this.getDefaultLeaveBalance(),
+        data: balance.length > 0 ? balance :  await this.getDefaultLeaveBalance(),
         message: "Leave balance calculated successfully",
       };
     } catch (error) {
       console.error("Error calculating leave balance:", error);
       return {
         success: false,
-        data: this.getDefaultLeaveBalance(),
+        data: await this.getDefaultLeaveBalance(),
         message: error.message,
       };
     }
   }
 
   // Helper method for default leave balance
-  getDefaultLeaveBalance() {
-    return [
-      {
-        typeName: "Annual Leave",
-        usedDays: 0,
-        maxDays: 15,
-        remainingDays: 15,
-        leaveTypeId: "annual",
-      },
-      {
-        typeName: "Sick Leave",
-        usedDays: 0,
-        maxDays: 10,
-        remainingDays: 10,
-        leaveTypeId: "sick",
-      },
-      {
-        typeName: "Casual Leave",
-        usedDays: 0,
-        maxDays: 7,
-        remainingDays: 7,
-        leaveTypeId: "casual",
-      },
-    ];
+  async getDefaultLeaveBalance() {
+
+    const companyLeaveTypes = await this.GetComapnyLeaveTypes();
+    if(!companyLeaveTypes){
+        
+        return [
+          {
+            typeName: "Annual Leave",
+            usedDays: 0,
+            maxDays: 15,
+            remainingDays: 15,
+            leaveTypeId: "annual",
+          },
+          {
+            typeName: "Sick Leave",
+            usedDays: 0,
+            maxDays: 10,
+            remainingDays: 10,
+            leaveTypeId: "sick",
+          },
+          {
+            typeName: "Casual Leave",
+            usedDays: 0,
+            maxDays: 7,
+            remainingDays: 7,
+            leaveTypeId: "casual",
+          },
+        ];
+    }
+    else{
+
+        return companyLeaveTypes.data.map((type) => ({
+          typeName: type.name || "Leave",
+          usedDays: 0,
+          maxDays: type.maxDaysPerYear || 15,
+          leaveTypeId: type.leaveTypeId,
+        }));
+    }
+
   }
   // Get current user's employee details
   async getCurrentUserEmployeeDetails() {
@@ -1783,7 +1825,7 @@ class AuthAPI {
         };
       }
 
-      const response = await fetch(`${this.BASE_URL}/leave/createLeave`, {
+      const response = await fetch(`${this.leaveAPI}/createLeave`, {
         method: "POST",
         headers: {
           authorization: `Bearer ${authToken}`,
@@ -1879,7 +1921,7 @@ class AuthAPI {
         }
       }
 
-      const response = await fetch(`${this.BASE_URL}/leave/applyLeave`, {
+      const response = await fetch(`${this.leaveAPI}/applyLeave`, {
         method: "POST",
         headers: {
           authorization: `Bearer ${tokenToParse}`,
@@ -1923,7 +1965,7 @@ class AuthAPI {
         };
       }
 
-      const response = await fetch(`${this.BASE_URL}/leave`, {
+      const response = await fetch(`${this.leaveAPI}/`, {
         method: "GET",
         headers: {
           authorization: `Bearer ${tokenToParse}`,
@@ -2007,8 +2049,8 @@ class AuthAPI {
       }
 
       const url = `${
-        this.BASE_URL
-      }/leave/allLeaveRequest?companyId=${encodeURIComponent(company)}`;
+        this.leaveAPI
+      }/allLeaveRequest?companyId=${encodeURIComponent(company)}`;
       const response = await fetch(url, {
         method: "GET",
         headers: {
@@ -2041,8 +2083,8 @@ class AuthAPI {
         token = token.slice(7);
 
       const url = `${
-        this.BASE_URL
-      }/leave/allLeaveRequest?companyId=${encodeURIComponent(company)}`;
+        this.leaveAPI
+      }/allLeaveRequest?companyId=${encodeURIComponent(company)}`;
       const response = await fetch(url, {
         method: "GET",
         headers: {
@@ -2091,7 +2133,7 @@ class AuthAPI {
         };
       }
 
-      const response = await fetch(`${this.BASE_URL}/leave/updateLeave`, {
+      const response = await fetch(`${this.leaveAPI}/updateLeave`, {
         method: "POST",
         headers: {
           authorization: `Bearer ${token}`,
