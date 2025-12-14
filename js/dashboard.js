@@ -1,240 +1,421 @@
 // Dashboard functionality for regular users
 class Dashboard {
-    constructor() {
-        this.init();
+  constructor() {
+    this.init();
+  }
+
+  init() {
+    // Check authentication
+    if (!authAPI.isAuthenticated()) {
+      window.location.href = "index.html";
+      return;
     }
 
-    init() {
-        // Check authentication
-        if (!authAPI.isAuthenticated()) {
-            window.location.href = 'index.html';
-            return;
-        }
-
-        // Redirect admin users to admin dashboard
-        if (authAPI.isAdmin()) {
-            window.location.href = 'admin-dashboard.html';
-            return;
-        }
-
-        this.bindEvents();
-        this.loadUserData();
-        this.loadUserLeaves();
-        this.loadLeaveBalance();
+    // Redirect admin users to admin dashboard
+    if (authAPI.isAdmin()) {
+      window.location.href = "admin-dashboard.html";
+      return;
     }
 
-    bindEvents() {
-        this.logoutBtn = document.getElementById('logoutBtn');
-        this.userEmail = document.getElementById('userEmail');
-        this.userProfile = document.getElementById('userProfile');
-        this.welcomeMessage = document.getElementById('welcomeMessage');
-        this.attendanceBtn = document.getElementById('attendanceBtn');
-        this.applyLeaveBtn = document.getElementById('applyLeaveBtn');
-        this.viewMyLeavesBtn = document.getElementById('viewMyLeavesBtn');
-        this.viewAssetsBtn = document.getElementById('viewAssetsBtn');
+    this.bindEvents();
+    this.loadUserData();
+    this.loadUserLeaves();
+    this.loadLeaveBalance();
+    this.loadUserAttendance();
+  }
+
+  async handleClockIn() {
+    if (!this.companyId || !this.employeeId) {
+      
+      return;
+    }
+
+    try {
+      this.clockInBtn.disabled = true;
+      this.clockInBtn.innerHTML =
+        '<span class="action-icon">⏳</span> Clocking In...';
+
+      const result = await authAPI.clockIn(this.companyId, this.employeeId);
+
+      if (result.success) {
+       
+
+        // Update status after a short delay
+        setTimeout(() => {
+          this.loadUserAttendance(); // Also refresh history
+        }, 1500);
+      } else {
         
-        // Add event listeners
-        if (this.logoutBtn) {
-            this.logoutBtn.addEventListener('click', () => {
-                authAPI.logout();
-            });
-        }
-        
-        if (this.attendanceBtn) {
-            this.attendanceBtn.addEventListener('click', () => {
-                window.location.href = 'attendance.html';
-            });
-        }
-        
-        if (this.applyLeaveBtn) {
-            this.applyLeaveBtn.addEventListener('click', () => this.goToApplyLeave());
-        }
-        
-        if (this.viewMyLeavesBtn) {
-            this.viewMyLeavesBtn.addEventListener('click', () => this.viewMyLeaves());
-        }
-        
-        if (this.viewAssetsBtn) {
-            this.viewAssetsBtn.addEventListener('click', () => this.viewAssets());
-        }
+        this.clockInBtn.disabled = false;
+        this.clockInBtn.innerHTML =
+          '<span class="action-icon">🕐</span> Clock In';
+      }
+    } catch (error) {
+      console.error("Error clocking in:", error);
+     
+      this.clockInBtn.disabled = false;
+      this.clockInBtn.innerHTML =
+        '<span class="action-icon">🕐</span> Clock In';
+    }
+  }
+
+  async handleClockOut() {
+    if (!this.companyId || !this.employeeId) {
+     
+      return;
     }
 
-    goToApplyLeave() {
-        window.location.href = 'apply-leave.html';
+    try {
+      this.clockOutBtn.disabled = true;
+      this.clockOutBtn.innerHTML =
+        '<span class="action-icon">⏳</span> Clocking Out...';
+
+      const result = await authAPI.clockOut(this.companyId, this.employeeId);
+
+      if (result.success) {
+       
+
+        // Update status after a short delay
+        setTimeout(() => {
+          this.loadUserAttendance(); // Also refresh history
+        }, 1500);
+      } else {
+       
+        this.clockOutBtn.disabled = false;
+        this.clockOutBtn.innerHTML =
+          '<span class="action-icon">🕔</span> Clock Out';
+      }
+    } catch (error) {
+      console.error("Error clocking out:", error);
+   
+      this.clockOutBtn.disabled = false;
+      this.clockOutBtn.innerHTML =
+        '<span class="action-icon">🕔</span> Clock Out';
+    }
+  }
+
+  async loadUserAttendance() {
+    // Placeholder for loading user attendance data
+    // This can be implemented similarly to leaves and balance
+    const status = await authAPI.getTodayAttendanceFromEvents(
+      this.companyId,
+      this.employeeId
+    );
+
+    this.currentStatus = status;
+    this.todayEvents = status.events || [];
+
+    console.log("Today's status loaded:", status);
+    console.log("Today events:", this.todayEvents);
+
+    this.updateActionButtons(status);
+  }
+
+  updateActionButtons(status) {
+    const clockInBtn = document.getElementById("clockInBtn");
+    const clockOutBtn = document.getElementById("clockOutBtn");
+
+    if (status.events.length == 0) {
+      clockInBtn.disabled = false;
+      clockOutBtn.disabled = true;
+      clockInBtn.innerHTML = '<span class="action-icon">✅</span> Clocked In';
+      clockOutBtn.innerHTML = '<span class="action-icon">🕔</span> Clock Out';
+      return;
     }
 
-    async viewMyLeaves() {
-        try {
-            const result = await authAPI.getUserLeaveRequests();
-            
-            if (result.success && result.data && Array.isArray(result.data)) {
-                this.showAllLeavesModal(result.data);
-            } else {
-                alert('No leave requests found.');
-            }
-        } catch (error) {
-            console.error('Error viewing leaves:', error);
-            alert('Error loading leave requests. Please try again.');
-        }
+    console.log("Updating action buttons based on status:", status);
+
+    switch (status.events[0].eventType) {
+      case "CLOCK_IN":
+        // Last event was clock in
+        clockInBtn.disabled = true;
+        clockOutBtn.disabled = false;
+        clockInBtn.innerHTML = '<span class="action-icon">✅</span> Clocked In';
+        clockOutBtn.innerHTML = '<span class="action-icon">🕔</span> Clock Out';
+        break;
+      case "CLOCK_OUT":
+        // Last event was clock out
+        clockInBtn.disabled = false;
+        clockOutBtn.disabled = true;
+        clockInBtn.innerHTML = '<span class="action-icon">🕔</span> Clocked In';
+        clockOutBtn.innerHTML = '<span class="action-icon">✅</span> Clock Out';
+        break;
+      default:
+        // Unknown status
+        clockInBtn.disabled = false;
+        clockOutBtn.disabled = true;
+        clockInBtn.innerHTML = '<span class="action-icon">🕐</span> Clock In';
+        clockOutBtn.innerHTML = '<span class="action-icon">🕔</span> Clock Out';
+        break;
+    }
+  }
+
+  bindEvents() {
+    this.logoutBtn = document.getElementById("logoutBtn");
+    this.userEmail = document.getElementById("userEmail");
+    this.userProfile = document.getElementById("userProfile");
+    this.welcomeMessage = document.getElementById("welcomeMessage");
+    this.attendanceBtn = document.getElementById("attendanceBtn");
+    this.applyLeaveBtn = document.getElementById("applyLeaveBtn");
+    this.viewMyLeavesBtn = document.getElementById("viewMyLeavesBtn");
+    this.viewAssetsBtn = document.getElementById("viewAssetsBtn");
+    this.clockInBtn = document.getElementById("clockInBtn");
+    this.clockOutBtn = document.getElementById("clockOutBtn");
+
+    // Add event listeners
+    if (this.logoutBtn) {
+      this.logoutBtn.addEventListener("click", () => {
+        authAPI.logout();
+      });
     }
 
-    viewAssets() {
-        // This would show assets assigned to the user
-        alert('Asset viewing feature coming soon!');
+    if (this.attendanceBtn) {
+      this.attendanceBtn.addEventListener("click", () => {
+        window.location.href = "attendance.html";
+      });
     }
 
-    async loadUserLeaves() {
-        try {
-            const result = await authAPI.getUserLeaveRequests();
-            
-            if (result.success && result.data && Array.isArray(result.data)) {
-                this.displayUserLeaves(result.data);
-            } else {
-                this.displayNoLeaves();
-            }
-        } catch (error) {
-            console.error('Error loading user leaves:', error);
-            this.displayNoLeaves();
-        }
+    if (this.applyLeaveBtn) {
+      this.applyLeaveBtn.addEventListener("click", () => this.goToApplyLeave());
     }
 
-    displayUserLeaves(leaves) {
-        const leavesContainer = document.getElementById('userLeaves');
-        if (!leavesContainer) return;
+    if (this.viewMyLeavesBtn) {
+      this.viewMyLeavesBtn.addEventListener("click", () => this.viewMyLeaves());
+    }
 
-        if (leaves.length === 0) {
-            this.displayNoLeaves();
-            return;
-        }
+    if (this.viewAssetsBtn) {
+      this.viewAssetsBtn.addEventListener("click", () => this.viewAssets());
+    }
 
-        // Sort by date (newest first)
-        const sortedLeaves = [...leaves].sort((a, b) => 
-            new Date(b.startDate || b.createdAt) - new Date(a.startDate || a.createdAt)
-        );
+    if (this.clockInBtn) {
+      this.clockInBtn.addEventListener("click", () => {
+        this.handleClockIn();
+      });
+    }
 
-        // Show only recent 3 leaves
-        const recentLeaves = sortedLeaves.slice(0, 3);
-        
-        leavesContainer.innerHTML = `
+    if (this.clockOutBtn) {
+      this.clockOutBtn.addEventListener("click", () => {
+        this.handleClockOut();
+      });
+    }
+  }
+
+  goToApplyLeave() {
+    window.location.href = "apply-leave.html";
+  }
+
+  async viewMyLeaves() {
+    try {
+      const result = await authAPI.getUserLeaveRequests();
+
+      if (result.success && result.data && Array.isArray(result.data)) {
+        this.showAllLeavesModal(result.data);
+      } else {
+        alert("No leave requests found.");
+      }
+    } catch (error) {
+      console.error("Error viewing leaves:", error);
+      alert("Error loading leave requests. Please try again.");
+    }
+  }
+
+  viewAssets() {
+    // This would show assets assigned to the user
+    alert("Asset viewing feature coming soon!");
+  }
+
+  async loadUserLeaves() {
+    try {
+      const result = await authAPI.getUserLeaveRequests();
+
+      if (result.success && result.data && Array.isArray(result.data)) {
+        this.displayUserLeaves(result.data);
+      } else {
+        this.displayNoLeaves();
+      }
+    } catch (error) {
+      console.error("Error loading user leaves:", error);
+      this.displayNoLeaves();
+    }
+  }
+
+  displayUserLeaves(leaves) {
+    const leavesContainer = document.getElementById("userLeaves");
+    if (!leavesContainer) return;
+
+    if (leaves.length === 0) {
+      this.displayNoLeaves();
+      return;
+    }
+
+    // Sort by date (newest first)
+    const sortedLeaves = [...leaves].sort(
+      (a, b) =>
+        new Date(b.startDate || b.createdAt) -
+        new Date(a.startDate || a.createdAt)
+    );
+
+    // Show only recent 3 leaves
+    const recentLeaves = sortedLeaves.slice(0, 3);
+
+    leavesContainer.innerHTML = `
             <div class="leaves-list">
-                ${recentLeaves.map(leave => {
-                    const startDate = leave.startDate ? new Date(leave.startDate).toLocaleDateString() : 'N/A';
-                    const endDate = leave.endDate ? new Date(leave.endDate).toLocaleDateString() : 'N/A';
-                    const appliedOn = leave.createdAt ? new Date(leave.createdAt).toLocaleDateString() : 'N/A';
-                    const days = leave.startDate && leave.endDate ? 
-                        Math.ceil((new Date(leave.endDate) - new Date(leave.startDate)) / (1000 * 60 * 60 * 24)) + 1 : 
-                        0;
-                    
+                ${recentLeaves
+                  .map((leave) => {
+                    const startDate = leave.startDate
+                      ? new Date(leave.startDate).toLocaleDateString()
+                      : "N/A";
+                    const endDate = leave.endDate
+                      ? new Date(leave.endDate).toLocaleDateString()
+                      : "N/A";
+                    const appliedOn = leave.createdAt
+                      ? new Date(leave.createdAt).toLocaleDateString()
+                      : "N/A";
+                    const days =
+                      leave.startDate && leave.endDate
+                        ? Math.ceil(
+                            (new Date(leave.endDate) -
+                              new Date(leave.startDate)) /
+                              (1000 * 60 * 60 * 24)
+                          ) + 1
+                        : 0;
+
                     // Determine status badge class
-                    let statusClass = 'pending';
-                    if (leave.status === 'APPROVED') statusClass = 'approved';
-                    if (leave.status === 'REJECTED') statusClass = 'rejected';
-                    if (leave.status === 'CANCELLED') statusClass = 'cancelled';
-                    
+                    let statusClass = "pending";
+                    if (leave.status === "APPROVED") statusClass = "approved";
+                    if (leave.status === "REJECTED") statusClass = "rejected";
+                    if (leave.status === "CANCELLED") statusClass = "cancelled";
+
                     return `
                         <div class="leave-item">
                             <div class="leave-header">
-                                <span class="leave-type">${leave.leaveTypeName || leave.leaveTypeId || 'Leave'}</span>
+                                <span class="leave-type">${
+                                  leave.leaveTypeName ||
+                                  leave.leaveTypeId ||
+                                  "Leave"
+                                }</span>
                                 <span class="status-badge ${statusClass}">
-                                    ${leave.status || 'PENDING'}
+                                    ${leave.status || "PENDING"}
                                 </span>
                             </div>
                             <div class="leave-dates">
                                 <span class="date-range">${startDate} - ${endDate}</span>
                                 <span class="days-count">(${days} days)</span>
                             </div>
-                            ${leave.reason ? `
-                                <div class="leave-reason" title="${leave.reason}">
-                                    ${leave.reason.substring(0, 100)}${leave.reason.length > 100 ? '...' : ''}
+                            ${
+                              leave.reason
+                                ? `
+                                <div class="leave-reason" title="${
+                                  leave.reason
+                                }">
+                                    ${leave.reason.substring(0, 100)}${
+                                    leave.reason.length > 100 ? "..." : ""
+                                  }
                                 </div>
-                            ` : ''}
+                            `
+                                : ""
+                            }
                             <div class="leave-footer">
                                 <span class="applied-date">Applied: ${appliedOn}</span>
                             </div>
                         </div>
                     `;
-                }).join('')}
+                  })
+                  .join("")}
             </div>
-            ${leaves.length > 3 ? `
+            ${
+              leaves.length > 3
+                ? `
                 <div class="view-all-leaves">
                     <button id="viewAllLeavesBtn" class="btn btn-secondary">
                         View All (${leaves.length}) Leave Requests
                     </button>
                 </div>
-            ` : ''}
+            `
+                : ""
+            }
         `;
 
-        // Add event listener for "View All" button
-        const viewAllBtn = document.getElementById('viewAllLeavesBtn');
-        if (viewAllBtn) {
-            viewAllBtn.addEventListener('click', () => this.viewMyLeaves());
-        }
+    // Add event listener for "View All" button
+    const viewAllBtn = document.getElementById("viewAllLeavesBtn");
+    if (viewAllBtn) {
+      viewAllBtn.addEventListener("click", () => this.viewMyLeaves());
     }
+  }
 
-    displayNoLeaves() {
-        const leavesContainer = document.getElementById('userLeaves');
-        if (!leavesContainer) return;
+  displayNoLeaves() {
+    const leavesContainer = document.getElementById("userLeaves");
+    if (!leavesContainer) return;
 
-        leavesContainer.innerHTML = `
+    leavesContainer.innerHTML = `
             <div class="empty-state">
                 <p>No leave requests yet</p>
                 <button id="applyFirstLeaveBtn" class="btn">Apply for Your First Leave</button>
             </div>
         `;
-        
-        document.getElementById('applyFirstLeaveBtn')?.addEventListener('click', () => {
-            this.goToApplyLeave();
-        });
+
+    document
+      .getElementById("applyFirstLeaveBtn")
+      ?.addEventListener("click", () => {
+        this.goToApplyLeave();
+      });
+  }
+
+  async loadLeaveBalance() {
+    try {
+      const result = await authAPI.getUserLeaveBalance();
+
+      if (result.success && result.data && Array.isArray(result.data)) {
+        this.displayLeaveBalance(result.data);
+      } else {
+        // Fallback to mock data if API fails
+        this.displayMockLeaveBalance();
+      }
+    } catch (error) {
+      console.error("Error loading leave balance:", error);
+      this.displayMockLeaveBalance();
+    }
+  }
+
+  displayLeaveBalance(balanceData) {
+    const balanceContainer = document.getElementById("leaveBalance");
+    if (!balanceContainer) return;
+
+    if (!balanceData || balanceData.length === 0) {
+      this.displayMockLeaveBalance();
+      return;
     }
 
-    async loadLeaveBalance() {
-        try {
-            const result = await authAPI.getUserLeaveBalance();
-            
-            if (result.success && result.data && Array.isArray(result.data)) {
-                this.displayLeaveBalance(result.data);
-            } else {
-                // Fallback to mock data if API fails
-                this.displayMockLeaveBalance();
-            }
-        } catch (error) {
-            console.error('Error loading leave balance:', error);
-            this.displayMockLeaveBalance();
-        }
-    }
+    balanceContainer.innerHTML = balanceData
+      .map((balance) => {
+        const percentage =
+          balance.maxDays > 0 ? (balance.usedDays / balance.maxDays) * 100 : 0;
 
-    displayLeaveBalance(balanceData) {
-        const balanceContainer = document.getElementById('leaveBalance');
-        if (!balanceContainer) return;
-
-        if (!balanceData || balanceData.length === 0) {
-            this.displayMockLeaveBalance();
-            return;
-        }
-
-        balanceContainer.innerHTML = balanceData.map(balance => {
-            const percentage = balance.maxDays > 0 ? (balance.usedDays / balance.maxDays) * 100 : 0;
-            
-            return `
+        return `
                 <div class="balance-card">
-                    <h4>${balance.typeName || 'Leave'}</h4>
-                    <div class="balance-days">${balance.usedDays} / ${balance.maxDays} days</div>
+                    <h4>${balance.typeName || "Leave"}</h4>
+                    <div class="balance-days">${balance.usedDays} / ${
+          balance.maxDays
+        } days</div>
                     <div class="balance-progress">
                         <div class="progress-bar" style="width: ${percentage}%"></div>
                     </div>
                     <div class="balance-remaining">
-                        Remaining: <strong>${balance.remainingDays} days</strong>
+                        Remaining: <strong>${
+                          balance.remainingDays
+                        } days</strong>
                     </div>
                 </div>
             `;
-        }).join('');
-    }
+      })
+      .join("");
+  }
 
-    displayMockLeaveBalance() {
-        const balanceContainer = document.getElementById('leaveBalance');
-        if (!balanceContainer) return;
+  displayMockLeaveBalance() {
+    const balanceContainer = document.getElementById("leaveBalance");
+    if (!balanceContainer) return;
 
-        balanceContainer.innerHTML = `
+    balanceContainer.innerHTML = `
             <div class="balance-card">
                 <h4>Annual Leave</h4>
                 <div class="balance-days">12 / 15 days</div>
@@ -266,13 +447,13 @@ class Dashboard {
                 </div>
             </div>
         `;
-    }
+  }
 
-    showAllLeavesModal(allLeaves) {
-        // Create modal
-        const modal = document.createElement('div');
-        modal.className = 'modal';
-        modal.innerHTML = `
+  showAllLeavesModal(allLeaves) {
+    // Create modal
+    const modal = document.createElement("div");
+    modal.className = "modal";
+    modal.innerHTML = `
             <div class="modal-content" style="max-width: 900px;">
                 <div class="modal-header">
                     <h3>All My Leave Requests (${allLeaves.length})</h3>
@@ -293,36 +474,65 @@ class Dashboard {
                                 </tr>
                             </thead>
                             <tbody>
-                                ${allLeaves.map(leave => {
-                                    const startDate = leave.startDate ? new Date(leave.startDate).toLocaleDateString() : 'N/A';
-                                    const endDate = leave.endDate ? new Date(leave.endDate).toLocaleDateString() : 'N/A';
-                                    const appliedOn = leave.createdAt ? new Date(leave.createdAt).toLocaleDateString() : 'N/A';
-                                    const days = leave.startDate && leave.endDate ? 
-                                        Math.ceil((new Date(leave.endDate) - new Date(leave.startDate)) / (1000 * 60 * 60 * 24)) + 1 : 
-                                        0;
-                                    
+                                ${allLeaves
+                                  .map((leave) => {
+                                    const startDate = leave.startDate
+                                      ? new Date(
+                                          leave.startDate
+                                        ).toLocaleDateString()
+                                      : "N/A";
+                                    const endDate = leave.endDate
+                                      ? new Date(
+                                          leave.endDate
+                                        ).toLocaleDateString()
+                                      : "N/A";
+                                    const appliedOn = leave.createdAt
+                                      ? new Date(
+                                          leave.createdAt
+                                        ).toLocaleDateString()
+                                      : "N/A";
+                                    const days =
+                                      leave.startDate && leave.endDate
+                                        ? Math.ceil(
+                                            (new Date(leave.endDate) -
+                                              new Date(leave.startDate)) /
+                                              (1000 * 60 * 60 * 24)
+                                          ) + 1
+                                        : 0;
+
                                     // Determine status badge class
-                                    let statusClass = 'pending';
-                                    if (leave.status === 'APPROVED') statusClass = 'approved';
-                                    if (leave.status === 'REJECTED') statusClass = 'rejected';
-                                    if (leave.status === 'CANCELLED') statusClass = 'cancelled';
-                                    
+                                    let statusClass = "pending";
+                                    if (leave.status === "APPROVED")
+                                      statusClass = "approved";
+                                    if (leave.status === "REJECTED")
+                                      statusClass = "rejected";
+                                    if (leave.status === "CANCELLED")
+                                      statusClass = "cancelled";
+
                                     return `
                                         <tr>
-                                            <td>${leave.leaveTypeName || leave.leaveTypeId || 'Leave'}</td>
+                                            <td>${
+                                              leave.leaveTypeName ||
+                                              leave.leaveTypeId ||
+                                              "Leave"
+                                            }</td>
                                             <td>${startDate}</td>
                                             <td>${endDate}</td>
                                             <td>${days}</td>
                                             <td>
                                                 <span class="status-badge ${statusClass}">
-                                                    ${leave.status || 'PENDING'}
+                                                    ${leave.status || "PENDING"}
                                                 </span>
                                             </td>
-                                            <td>${leave.reason || 'No reason provided'}</td>
+                                            <td>${
+                                              leave.reason ||
+                                              "No reason provided"
+                                            }</td>
                                             <td>${appliedOn}</td>
                                         </tr>
                                     `;
-                                }).join('')}
+                                  })
+                                  .join("")}
                             </tbody>
                         </table>
                     </div>
@@ -332,52 +542,56 @@ class Dashboard {
                 </div>
             </div>
         `;
-        
-        document.body.appendChild(modal);
-        
-        // Add close functionality
-        const closeBtns = modal.querySelectorAll('.close-modal');
-        closeBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                modal.remove();
-            });
-        });
-        
-        // Close modal when clicking outside
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                modal.remove();
-            }
-        });
-        
-        modal.style.display = 'block';
-    }
 
-    loadUserData() {
-        const user = authAPI.getCurrentUser();
-        const role = authAPI.getUserRole();
+    document.body.appendChild(modal);
 
-        if (user) {
-            // Display user email in navbar
-            if (this.userEmail) {
-                this.userEmail.textContent = user.email;
-            }
+    // Add close functionality
+    const closeBtns = modal.querySelectorAll(".close-modal");
+    closeBtns.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        modal.remove();
+      });
+    });
 
-            // Update welcome message based on role
-            if (this.welcomeMessage) {
-                if (role === 'EMPLOYEE') {
-                    this.welcomeMessage.textContent = 'You\'re logged in as an employee.';
-                } else {
-                    this.welcomeMessage.textContent = `You're logged in as ${role.toLowerCase().replace('_', ' ')}.`;
-                }
-            }
+    // Close modal when clicking outside
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) {
+        modal.remove();
+      }
+    });
 
-            // Display user profile details
-            if (this.userProfile) {
-                this.userProfile.innerHTML = `
+    modal.style.display = "block";
+  }
+
+  loadUserData() {
+    const user = authAPI.getCurrentUser();
+    const role = authAPI.getUserRole();
+
+    if (user) {
+      // Display user email in navbar
+      if (this.userEmail) {
+        this.userEmail.textContent = user.email;
+      }
+
+      // Update welcome message based on role
+      if (this.welcomeMessage) {
+        if (role === "EMPLOYEE") {
+          this.welcomeMessage.textContent = "You're logged in as an employee.";
+        } else {
+          this.welcomeMessage.textContent = `You're logged in as ${role
+            .toLowerCase()
+            .replace("_", " ")}.`;
+        }
+      }
+
+      // Display user profile details
+      if (this.userProfile) {
+        this.userProfile.innerHTML = `
                     <div class="user-detail-item">
                         <span class="user-detail-label">Name:</span>
-                        <span class="user-detail-value">${user.username || user.email.split('@')[0]}</span>
+                        <span class="user-detail-value">${
+                          user.username || user.email.split("@")[0]
+                        }</span>
                     </div>
                     <div class="user-detail-item">
                         <span class="user-detail-label">Email:</span>
@@ -393,19 +607,26 @@ class Dashboard {
                     </div>
                     <div class="user-detail-item">
                         <span class="user-detail-label">Account Created:</span>
-                        <span class="user-detail-value">${new Date(user.createdAt).toLocaleDateString()}</span>
+                        <span class="user-detail-value">${new Date(
+                          user.createdAt
+                        ).toLocaleDateString()}</span>
                     </div>
                     <div class="user-detail-item">
                         <span class="user-detail-label">Status:</span>
-                        <span class="user-detail-value">${user.isActive ? 'Active' : 'Inactive'}</span>
+                        <span class="user-detail-value">${
+                          user.isActive ? "Active" : "Inactive"
+                        }</span>
                     </div>
                 `;
-            }
-        }
+      }
     }
+    const emp = authAPI.getCurrentEmployeeData();
+    this.companyId = emp ? emp.companyId : null;
+    this.employeeId = emp ? emp.employeeId : null;  
+  }
 }
 
 // Initialize dashboard when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-    new Dashboard();
+document.addEventListener("DOMContentLoaded", () => {
+  new Dashboard();
 });

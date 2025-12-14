@@ -1,7 +1,7 @@
 // Authentication API functions
 class AuthAPI {
   constructor() {
-    this.IsProd = true; // Set to true in production
+    this.IsProd = false; // Set to true in production
     this.baseURL = this.IsProd
       ? "https://corey-unhypnotizable-sippingly.ngrok-free.dev"
       : "http://localhost:3000";
@@ -461,6 +461,12 @@ class AuthAPI {
   // Utility function to check if user is authenticated
   isAuthenticated() {
     return localStorage.getItem("token") !== null;
+  }
+
+    // Get current user data
+  getCurrentEmployeeData() {
+    const userData = localStorage.getItem("employeeData");
+    return userData ? JSON.parse(userData) : null;
   }
 
   // Get current user data
