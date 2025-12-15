@@ -1,7 +1,7 @@
 // Authentication API functions
 class AuthAPI {
   constructor() {
-    this.IsProd = false; // Set to true in production
+    this.IsProd = true; // Set to true in production
     this.baseURL = this.IsProd
       ? "https://corey-unhypnotizable-sippingly.ngrok-free.dev"
       : "http://localhost:3000";
@@ -1532,6 +1532,108 @@ class AuthAPI {
       };
     } catch (error) {
       console.error("Error deleting asset:", error);
+      throw error;
+    }
+  }
+
+  // Assign an asset to an employee
+  async assignAsset(assignData) {
+    try {
+      const token = this.getToken();
+      if (!token) throw new Error("No authentication token found");
+
+      const companyId = this.getCompanyId();
+      if (!companyId) throw new Error("No company ID found");
+
+      const response = await fetch(`${this.BASE_URL}/assets/assign`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          companyId: companyId,
+          "Content-Type": "application/json",
+          "ngrok-skip-browser-warning": "true",
+        },
+        body: JSON.stringify({ ...assignData, companyId }),
+      });
+
+      const data = await response.json();
+      return {
+        success: response.ok || response.status === 200,
+        status: response.status,
+        data: data,
+      };
+    } catch (error) {
+      console.error("Error assigning asset:", error);
+      throw error;
+    }
+  }
+
+  // Return an asset from an employee (mark returned)
+  async returnAsset(returnData) {
+    try {
+      const token = this.getToken();
+      if (!token) throw new Error("No authentication token found");
+
+      const companyId = this.getCompanyId();
+      if (!companyId) throw new Error("No company ID found");
+
+      const response = await fetch(`${this.BASE_URL}/assets/assign`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          companyId: companyId,
+          "Content-Type": "application/json",
+          "ngrok-skip-browser-warning": "true",
+        },
+        body: JSON.stringify({ ...returnData, companyId }),
+      });
+
+      const data = await response.json();
+      return {
+        success: response.ok || response.status === 200,
+        status: response.status,
+        data: data,
+      };
+    } catch (error) {
+      console.error("Error returning asset:", error);
+      throw error;
+    }
+  }
+
+  // Get all assigned assets that have not been returned (returnedAt is null)
+  // Optional: filter by employeeId if provided
+  async getAssignedAssets(employeeId) {
+    try {
+      const token = this.getToken();
+      if (!token) throw new Error("No authentication token found");
+
+      const companyId = this.getCompanyId();
+      if (!companyId) throw new Error("No company ID found");
+
+      const requestBody = { returnedAt: null };
+      if (employeeId) {
+        requestBody.employeeId = employeeId;
+      }
+
+      const response = await fetch(`${this.BASE_URL}/assets/getAssign`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          companyId: companyId,
+          "Content-Type": "application/json",
+          "ngrok-skip-browser-warning": "true",
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      const data = await response.json();
+      return {
+        success: response.ok || response.status === 200,
+        status: response.status,
+        data: data,
+      };
+    } catch (error) {
+      console.error("Error fetching assigned assets:", error);
       throw error;
     }
   }

@@ -18,6 +18,7 @@ class ManageAssets {
 
         this.bindEvents();
         this.loadAssets();
+        this.loadAssignedAssets();
     }
 
     bindEvents() {
@@ -29,10 +30,14 @@ class ManageAssets {
         
         // Modal elements
         this.modal = document.getElementById('assetModal');
+        this.assignModal = document.getElementById('assignModal');
         this.closeModalBtns = document.querySelectorAll('.close-modal');
         this.assetForm = document.getElementById('assetForm');
         this.modalTitle = document.getElementById('modalTitle');
         this.modalSubmitBtn = document.getElementById('modalSubmitBtn');
+        this.assignForm = document.getElementById('assignForm');
+        this.assignSubmitBtn = document.getElementById('assignSubmitBtn');
+        this.returnSubmitBtn = document.getElementById('returnSubmitBtn');
 
         this.logoutBtn.addEventListener('click', () => authAPI.logout());
         this.backToDashboard.addEventListener('click', () => window.location.href = 'admin-dashboard.html');
@@ -51,6 +56,12 @@ class ManageAssets {
 
         if (this.assetForm) {
             this.assetForm.addEventListener('submit', (e) => this.handleAssetSubmit(e));
+        }
+        if (this.assignForm) {
+            this.assignForm.addEventListener('submit', (e) => this.handleAssignSubmit(e));
+        }
+        if (this.returnSubmitBtn) {
+            this.returnSubmitBtn.addEventListener('click', () => this.handleReturnSubmit());
         }
     }
 
@@ -109,6 +120,12 @@ class ManageAssets {
                 <td>${asset.purchaseDate ? new Date(asset.purchaseDate).toLocaleDateString() : 'N/A'}</td>
                 <td>${asset.warrantyExpiry ? new Date(asset.warrantyExpiry).toLocaleDateString() : 'N/A'}</td>
                 <td>
+                    <button class="btn-action assign-btn" data-id="${asset.assetId || asset.id}">
+                        🔗 Assign
+                    </button>
+                    <button class="btn-action return-btn" data-id="${asset.assetId || asset.id}">
+                        ↩️ Return
+                    </button>
                     <button class="btn-action edit-btn" data-id="${asset.assetId || asset.id}">
                         ✏️ Edit
                     </button>
@@ -137,6 +154,22 @@ class ManageAssets {
             btn.addEventListener('click', (e) => {
                 const assetId = e.target.getAttribute('data-id');
                 this.deleteAsset(assetId);
+            });
+        });
+
+        // Assign buttons
+        document.querySelectorAll('.assign-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const assetId = e.target.getAttribute('data-id');
+                this.showAssignModal(assetId, false);
+            });
+        });
+
+        // Return buttons
+        document.querySelectorAll('.return-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const assetId = e.target.getAttribute('data-id');
+                this.showAssignModal(assetId, true);
             });
         });
     }
@@ -200,9 +233,194 @@ class ManageAssets {
         }
     }
 
+    async loadAssignedAssets() {
+        const loadingEl = document.getElementById('loadingAssignedAssets');
+        const noAssignedEl = document.getElementById('noAssignedAssets');
+        const tableBody = document.getElementById('assignedAssetsTableBody');
+
+        if (loadingEl) loadingEl.style.display = 'block';
+        if (noAssignedEl) noAssignedEl.style.display = 'none';
+        if (tableBody) tableBody.innerHTML = '';
+
+        try {
+            const result = await authAPI.getAssignedAssets();
+            
+            if (loadingEl) loadingEl.style.display = 'none';
+            
+            if (result.success && result.data && Array.isArray(result.data)) {
+                this.displayAssignedAssets(result.data);
+            } else {
+                if (noAssignedEl) noAssignedEl.style.display = 'block';
+            }
+        } catch (error) {
+            console.error('Error loading assigned assets:', error);
+            if (loadingEl) loadingEl.style.display = 'none';
+            if (noAssignedEl) noAssignedEl.style.display = 'block';
+        }
+    }
+
+    displayAssignedAssets(assignments) {
+        const tableBody = document.getElementById('assignedAssetsTableBody');
+        if (!tableBody) return;
+
+        if (assignments.length === 0) {
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="7" style="text-align: center; padding: 40px;">
+                        No assigned assets pending return.
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        tableBody.innerHTML = assignments.map(assignment => `
+            <tr data-assignment-id="${assignment.assignmentId || ''}">
+                <td><strong>${assignment.assetTag || 'N/A'}</strong></td>
+                <td>${assignment.type || 'N/A'}</td>
+                <td>${assignment.serialNumber || 'N/A'}</td>
+                <td>${assignment.employeeId || 'N/A'}</td>
+                <td>${assignment.assignedAt ? new Date(assignment.assignedAt).toLocaleDateString() : 'N/A'}</td>
+                <td>${assignment.notes || '-'}</td>
+                <td>
+                    <button class="btn-action return-assigned-btn" data-assignment-id="${assignment.assignmentId || ''}">
+                        ↩️ Return
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+
+        // Add event listeners to return buttons
+        this.addAssignedAssetListeners();
+    }
+
+    addAssignedAssetListeners() {
+        document.querySelectorAll('.return-assigned-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const assignmentId = e.target.getAttribute('data-assignment-id');
+                this.showReturnModal(assignmentId);
+            });
+        });
+    }
+
+    showReturnModal(assignmentId) {
+        try {
+            document.getElementById('assignAssetId').value = assignmentId || '';
+            document.getElementById('employeeId').value = '';
+            document.getElementById('returnedAt').value = '';
+            document.getElementById('returnedCondition').value = '';
+            document.getElementById('assignNotes').value = '';
+
+            document.getElementById('assignModalTitle').textContent = 'Return Asset';
+
+            if (this.assignSubmitBtn) this.assignSubmitBtn.style.display = 'none';
+            if (this.returnSubmitBtn) this.returnSubmitBtn.style.display = '';
+
+            if (this.assignModal) this.assignModal.style.display = 'block';
+        } catch (error) {
+            console.error('Error showing return modal:', error);
+        }
+    }
+
     closeModal() {
-        this.modal.style.display = 'none';
-        this.assetForm.reset();
+        if (this.modal) this.modal.style.display = 'none';
+        if (this.assetForm) this.assetForm.reset();
+        if (this.assignModal) this.assignModal.style.display = 'none';
+        if (this.assignForm) this.assignForm.reset();
+    }
+
+    showAssignModal(assetId, isReturn = false) {
+        try {
+            // For assign, store assetId; for return, store as assignmentId
+            if (isReturn) {
+                document.getElementById('assignAssetId').value = assetId || '';
+                document.getElementById('assignAssetId').dataset.isAssignmentId = 'true';
+            } else {
+                document.getElementById('assignAssetId').value = assetId || '';
+                document.getElementById('assignAssetId').dataset.isAssignmentId = 'false';
+            }
+            document.getElementById('employeeId').value = '';
+            document.getElementById('returnedAt').value = '';
+            document.getElementById('returnedCondition').value = '';
+            document.getElementById('assignNotes').value = '';
+
+            const title = isReturn ? 'Return Asset' : 'Assign Asset';
+            document.getElementById('assignModalTitle').textContent = title;
+
+            if (this.assignSubmitBtn) this.assignSubmitBtn.style.display = isReturn ? 'none' : '';
+            if (this.returnSubmitBtn) this.returnSubmitBtn.style.display = isReturn ? '' : 'none';
+
+            if (this.assignModal) this.assignModal.style.display = 'block';
+        } catch (error) {
+            console.error('Error showing assign modal:', error);
+        }
+    }
+
+    async handleAssignSubmit(e) {
+        e.preventDefault();
+        const assetId = document.getElementById('assignAssetId').value;
+        const employeeId = document.getElementById('employeeId').value.trim();
+        // For assign we only send assetId and employeeId (return fields are not sent here)
+
+        if (!assetId || !employeeId) {
+            alert('Asset ID and Employee ID are required to assign.');
+            return;
+        }
+
+        try {
+            const payload = {
+                assetId,
+                employeeId,
+            };
+            const result = await authAPI.assignAsset(payload);
+            const ok = result && (result.success || result.status === 200);
+            if (ok) {
+                alert('Asset assigned successfully!');
+                this.closeModal();
+                this.loadAssets();
+            } else {
+                alert(`Failed to assign asset: ${result?.data?.message || 'Unknown error'}`);
+            }
+        } catch (error) {
+            console.error('Error assigning asset:', error);
+            alert('Error assigning asset');
+        }
+    }
+
+    async handleReturnSubmit() {
+        const assignmentId = document.getElementById('assignAssetId').value;
+        const employeeId = document.getElementById('employeeId').value.trim() || null;
+        const returnedAtVal = document.getElementById('returnedAt').value;
+        const returnedAt = returnedAtVal ? new Date(returnedAtVal).toISOString() : new Date().toISOString();
+        const returnedCondition = document.getElementById('returnedCondition').value || null;
+        const notes = document.getElementById('assignNotes').value || null;
+
+        if (!assignmentId) {
+            alert('Assignment ID is required to return.');
+            return;
+        }
+
+        try {
+            const payload = {
+                assignmentId,
+                employeeId,
+                returnedAt,
+                returnedCondition,
+                notes,
+            };
+            const result = await authAPI.returnAsset(payload);
+            const ok = result && (result.success || result.status === 200);
+            if (ok) {
+                alert('Asset returned successfully!');
+                this.closeModal();
+                this.loadAssets();
+            } else {
+                alert(`Failed to return asset: ${result?.data?.message || 'Unknown error'}`);
+            }
+        } catch (error) {
+            console.error('Error returning asset:', error);
+            alert('Error returning asset');
+        }
     }
 
     async handleAssetSubmit(e) {

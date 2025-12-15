@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Assets</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <h2>My Assets</h2>
+            </div>
+            <div class="nav-menu">
+                <button id="backToDashboard" class="btn btn-secondary">← Back to Dashboard</button>
+                <button id="logoutBtn" class="btn btn-secondary">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="dashboard-container">
+        <div class="assets-table-container">
+            <table id="userAssetsTable">
+                <thead>
+                    <tr>
+                        <th>Asset Tag</th>
+                        <th>Type</th>
+                        <th>Model</th>
+                        <th>Serial Number</th>
+                        <th>Condition</th>
+                        <th>Assigned Date</th>
+                        <th>Notes</th>
+                    </tr>
+                </thead>
+                <tbody id="userAssetsTableBody">
+                    <!-- User's assigned assets will be loaded here -->
+                </tbody>
+            </table>
+            <div id="loadingUserAssets" class="loading">
+                <div class="spinner"></div>
+                <p>Loading your assets...</p>
+            </div>
+            <div id="noUserAssets" class="empty-state">
+                <p>No assets assigned to you</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script src="js/view-assets.js"></script>
+</body>
+</html>

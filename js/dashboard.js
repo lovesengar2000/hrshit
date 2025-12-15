@@ -179,6 +179,12 @@ class Dashboard {
       this.applyLeaveBtn.addEventListener("click", () => this.goToApplyLeave());
     }
 
+    if (this.viewAssetsBtn) {
+      this.viewAssetsBtn.addEventListener("click", () => {
+        window.location.href = "view-assets.html";
+      });
+    }
+
     if (this.viewMyLeavesBtn) {
       this.viewMyLeavesBtn.addEventListener("click", () => this.viewMyLeaves());
     }
