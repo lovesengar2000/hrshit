@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Working Days Calendar</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+        
+        /* Compact mode styling */
+        .compact-mode {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 320px;
+            z-index: 1000;
+        }
+        
+        .compact-toggle {
+            position: absolute;
+            top: -45px;
+            right: 0;
+            background-color: #4a6fa5;
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            z-index: 1001;
+        }
+        
+        .compact-toggle:hover {
+            background-color: #385d8a;
+        }
+        
+        .calendar-container {
+            width: 100%;
+            max-width: 900px;
+            background-color: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+            padding: 25px;
+            transition: all 0.3s ease;
+        }
+        
+        .compact-mode .calendar-container {
+            max-width: 320px;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.25);
+        }
+        
+        .compact-mode .calendar-header,
+        .compact-mode .calendar-controls,
+        .compact-mode .summary,
+        .compact-mode .footer {
+            display: none;
+        }
+        
+        .compact-mode .calendar-grid {
+            grid-template-columns: repeat(7, 1fr);
+            gap: 0;
+        }
+        
+        .compact-mode .calendar-day-header {
+            padding: 8px 2px;
+            font-size: 12px;
+        }
+        
+        .compact-mode .calendar-day {
+            min-height: 40px;
+            padding: 5px;
+            font-size: 14px;
+        }
+        
+        .compact-mode .day-number {
+            font-size: 14px;
+            margin-bottom: 2px;
+            width: 24px;
+            height: 24px;
+        }
+        
+        .compact-mode .day-info {
+            font-size: 9px;
+            padding: 2px 4px;
+            margin-top: 2px;
+        }
+        
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .month-year {
+            font-size: 28px;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+        
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .nav-btn {
+            background-color: #4a6fa5;
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: all 0.3s;
+        }
+        
+        .nav-btn:hover {
+            background-color: #385d8a;
+            transform: scale(1.05);
+        }
+        
+        .calendar-controls {
+            margin-bottom: 25px;
+            padding: 20px;
+            background-color: #f8fafc;
+            border-radius: 12px;
+        }
+        
+        .control-section {
+            margin-bottom: 20px;
+        }
+        
+        .control-section:last-child {
+            margin-bottom: 0;
+        }
+        
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 12px;
+        }
+        
+        .work-pattern {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .work-days-selector {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .day-selector {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #eef2f7;
+            cursor: pointer;
+            font-weight: 600;
+            color: #4a5568;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+        
+        .day-selector.selected {
+            background-color: #4a6fa5;
+            color: white;
+        }
+        
+        .half-day-selector {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-top: 10px;
+        }
+        
+        .half-day-btn {
+            padding: 8px 15px;
+            border-radius: 20px;
+            background-color: #eef2f7;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            color: #4a5568;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .half-day-btn.active {
+            background-color: #ff9f43;
+            color: white;
+        }
+        
+        .specific-dates-control {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .date-input {
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        .add-date-btn {
+            padding: 10px 20px;
+            background-color: #4a6fa5;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        
+        .add-date-btn:hover {
+            background-color: #385d8a;
+        }
+        
+        .specific-dates-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        
+        .date-tag {
+            padding: 6px 12px;
+            background-color: #e8f4ff;
+            border-radius: 20px;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .date-tag .remove-date {
+            cursor: pointer;
+            color: #718096;
+        }
+        
+        .date-tag .remove-date:hover {
+            color: #e53e3e;
+        }
+        
+        .legend {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+        
+        .working-day {
+            background-color: #e8f4ff;
+        }
+        
+        .half-day-morning {
+            background: linear-gradient(to bottom, #e8f4ff 50%, #f8f9fa 50%);
+        }
+        
+        .half-day-afternoon {
+            background: linear-gradient(to bottom, #f8f9fa 50%, #e8f4ff 50%);
+        }
+        
+        .weekend {
+            background-color: #fff0f0;
+        }
+        
+        .non-working {
+            background-color: #f8f9fa;
+        }
+        
+        .today {
+            background-color: #ffeaa7;
+        }
+        
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 1px;
+            background-color: #e2e8f0;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .calendar-day-header {
+            background-color: #4a6fa5;
+            color: white;
+            padding: 15px 5px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 16px;
+        }
+        
+        .calendar-day {
+            background-color: white;
+            min-height: 100px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s;
+            position: relative;
+            cursor: pointer;
+        }
+        
+        .calendar-day:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            z-index: 1;
+        }
+        
+        .day-number {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            align-self: flex-end;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+        
+        .day-info {
+            margin-top: auto;
+            font-size: 13px;
+            font-weight: 500;
+            padding: 4px 8px;
+            border-radius: 4px;
+            text-align: center;
+        }
+        
+        .working-info {
+            background-color: #d1e8ff;
+            color: #2c5282;
+        }
+        
+        .half-day-morning-info {
+            background: linear-gradient(to right, #d1e8ff 50%, #e2e8f0 50%);
+            color: #2c5282;
+            position: relative;
+        }
+        
+        .half-day-morning-info::after {
+            content: "AM";
+            position: absolute;
+            left: 5px;
+            font-size: 10px;
+            font-weight: bold;
+        }
+        
+        .half-day-afternoon-info {
+            background: linear-gradient(to right, #e2e8f0 50%, #d1e8ff 50%);
+            color: #2c5282;
+            position: relative;
+        }
+        
+        .half-day-afternoon-info::after {
+            content: "PM";
+            position: absolute;
+            right: 5px;
+            font-size: 10px;
+            font-weight: bold;
+        }
+        
+        .weekend-info {
+            background-color: #fed7d7;
+            color: #c53030;
+        }
+        
+        .non-working-info {
+            background-color: #e2e8f0;
+            color: #718096;
+        }
+        
+        .today .day-number {
+            background-color: #ff9f43;
+            color: white;
+        }
+        
+        .half-day-indicator {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            font-size: 10px;
+            font-weight: bold;
+            color: #ff9f43;
+        }
+        
+        .summary {
+            margin-top: 25px;
+            padding: 20px;
+            background-color: #f8fafc;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .summary-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            min-width: 150px;
+        }
+        
+        .summary-value {
+            font-size: 32px;
+            font-weight: 800;
+            color: #2c3e50;
+        }
+        
+        .summary-label {
+            font-size: 14px;
+            color: #718096;
+            margin-top: 5px;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            color: #718096;
+            font-size: 14px;
+            padding-top: 15px;
+            border-top: 1px solid #e2e8f0;
+        }
+        
+        @media (max-width: 768px) {
+            .calendar-container {
+                padding: 15px;
+            }
+            
+            .calendar-day-header {
+                padding: 10px 2px;
+                font-size: 14px;
+            }
+            
+            .calendar-day {
+                min-height: 80px;
+                padding: 8px;
+            }
+            
+            .day-number {
+                font-size: 16px;
+                width: 25px;
+                height: 25px;
+            }
+            
+            .day-info {
+                font-size: 11px;
+                padding: 2px 4px;
+            }
+            
+            .summary {
+                flex-direction: column;
+                align-items: center;
+                gap: 20px;
+            }
+            
+            .summary-item {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="compact-mode">
+        <button class="compact-toggle" id="toggleCompact">
+            <i class="fas fa-calendar-alt"></i>
+        </button>
+        <div class="calendar-container">
+            <div class="calendar-grid" id="calendar-grid">
+                <!-- Calendar headers -->
+                <div class="calendar-day-header">Sun</div>
+                <div class="calendar-day-header">Mon</div>
+                <div class="calendar-day-header">Tue</div>
+                <div class="calendar-day-header">Wed</div>
+                <div class="calendar-day-header">Thu</div>
+                <div class="calendar-day-header">Fri</div>
+                <div class="calendar-day-header">Sat</div>
+                
+                <!-- Calendar days will be generated by JavaScript -->
+            </div>
+        </div>
+    </div>
+    
+    <div class="calendar-container" id="mainCalendar">
+        <div class="calendar-header">
+            <h1 class="month-year">June 2023</h1>
+            <div class="nav-buttons">
+                <button class="nav-btn" id="prev-month"><i class="fas fa-chevron-left"></i></button>
+                <button class="nav-btn" id="today-btn"><i class="fas fa-calendar-day"></i></button>
+                <button class="nav-btn" id="next-month"><i class="fas fa-chevron-right"></i></button>
+            </div>
+        </div>
+        
+        <div class="calendar-controls">
+            <div class="control-section">
+                <div class="section-title">Working Days Pattern</div>
+                <div class="work-pattern">
+                    <span>Select regular working days:</span>
+                    <div class="work-days-selector" id="work-days-selector">
+                        <div class="day-selector" data-day="0">Sun</div>
+                        <div class="day-selector selected" data-day="1">Mon</div>
+                        <div class="day-selector selected" data-day="2">Tue</div>
+                        <div class="day-selector selected" data-day="3">Wed</div>
+                        <div class="day-selector selected" data-day="4">Thu</div>
+                        <div class="day-selector selected" data-day="5">Fri</div>
+                        <div class="day-selector" data-day="6">Sat</div>
+                    </div>
+                </div>
+                <div class="half-day-selector">
+                    <span>Half-day settings:</span>
+                    <button class="half-day-btn" id="half-morning-btn">
+                        <i class="far fa-sun"></i> Morning Half
+                    </button>
+                    <button class="half-day-btn" id="half-afternoon-btn">
+                        <i class="far fa-moon"></i> Afternoon Half
+                    </button>
+                    <button class="half-day-btn" id="clear-half-day">
+                        <i class="fas fa-times"></i> Clear
+                    </button>
+                </div>
+            </div>
+            
+            <div class="control-section">
+                <div class="section-title">Specific Working Dates</div>
+                <div class="specific-dates-control">
+                    <input type="date" id="specific-date-input" class="date-input">
+                    <select id="day-type-select" class="date-input">
+                        <option value="full">Full Day</option>
+                        <option value="morning">Morning Half</option>
+                        <option value="afternoon">Afternoon Half</option>
+                    </select>
+                    <button class="add-date-btn" id="add-specific-date">
+                        <i class="fas fa-plus"></i> Add Date
+                    </button>
+                </div>
+                <div class="specific-dates-list" id="specific-dates-list">
+                    <!-- Specific dates will be added here -->
+                </div>
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color working-day"></div>
+                        <span>Working Day</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color half-day-morning"></div>
+                        <span>Morning Half</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color half-day-afternoon"></div>
+                        <span>Afternoon Half</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color weekend"></div>
+                        <span>Weekend</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color today"></div>
+                        <span>Today</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="calendar-grid" id="main-calendar-grid">
+            <!-- Calendar headers -->
+            <div class="calendar-day-header">Sunday</div>
+            <div class="calendar-day-header">Monday</div>
+            <div class="calendar-day-header">Tuesday</div>
+            <div class="calendar-day-header">Wednesday</div>
+            <div class="calendar-day-header">Thursday</div>
+            <div class="calendar-day-header">Friday</div>
+            <div class="calendar-day-header">Saturday</div>
+            
+            <!-- Calendar days will be generated by JavaScript -->
+        </div>
+        
+        <div class="summary">
+            <div class="summary-item">
+                <div class="summary-value" id="total-days">30</div>
+                <div class="summary-label">Total Days</div>
+            </div>
+            <div class="summary-item">
+                <div class="summary-value" id="working-days">22</div>
+                <div class="summary-label">Full Working Days</div>
+            </div>
+            <div class="summary-item">
+                <div class="summary-value" id="half-days">0</div>
+                <div class="summary-label">Half Days</div>
+            </div>
+            <div class="summary-item">
+                <div class="summary-value" id="non-working">8</div>
+                <div class="summary-label">Non-Working</div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Click on calendar days to toggle working status. Click day names above to set regular pattern. Use controls to add specific dates.</p>
+        </div>
+    </div>
+
+    <script>
+        // Current date and calendar state
+        let currentDate = new Date();
+        let currentMonth = currentDate.getMonth();
+        let currentYear = currentDate.getFullYear();
+        
+        // Default working days: Monday to Friday
+        let workingDays = [1, 2, 3, 4, 5]; // 0 = Sunday, 1 = Monday, etc.
+        
+        // Half-day settings
+        let halfDayType = null; // 'morning', 'afternoon', or null
+        let selectedHalfDay = null; // Day of week for half-day
+        
+        // Specific dates configuration
+        let specificDates = {
+            // Format: 'YYYY-MM-DD': {type: 'full', 'morning', 'afternoon'}
+            '2023-06-15': {type: 'morning'},
+            '2023-06-20': {type: 'afternoon'},
+            '2023-06-25': {type: 'full'} // This is a Sunday, overriding weekend
+        };
+        
+        // DOM elements
+        const monthYearElement = document.querySelector('.month-year');
+        const mainCalendarGrid = document.getElementById('main-calendar-grid');
+        const compactCalendarGrid = document.getElementById('calendar-grid');
+        const prevMonthBtn = document.getElementById('prev-month');
+        const nextMonthBtn = document.getElementById('next-month');
+        const todayBtn = document.getElementById('today-btn');
+        const workDaysSelector = document.getElementById('work-days-selector');
+        const toggleCompactBtn = document.getElementById('toggleCompact');
+        const compactMode = document.querySelector('.compact-mode');
+        const mainCalendar = document.getElementById('mainCalendar');
+        
+        // Half-day buttons
+        const halfMorningBtn = document.getElementById('half-morning-btn');
+        const halfAfternoonBtn = document.getElementById('half-afternoon-btn');
+        const clearHalfDayBtn = document.getElementById('clear-half-day');
+        
+        // Specific dates controls
+        const specificDateInput = document.getElementById('specific-date-input');
+        const dayTypeSelect = document.getElementById('day-type-select');
+        const addSpecificDateBtn = document.getElementById('add-specific-date');
+        const specificDatesList = document.getElementById('specific-dates-list');
+        
+        // Summary elements
+        const totalDaysElement = document.getElementById('total-days');
+        const workingDaysElement = document.getElementById('working-days');
+        const halfDaysElement = document.getElementById('half-days');
+        const nonWorkingElement = document.getElementById('non-working');
+        
+        // Initialize the calendar
+        function initCalendar() {
+            // Set current date in specific date input
+            const today = new Date();
+            const formattedToday = today.toISOString().split('T')[0];
+            specificDateInput.value = formattedToday;
+            specificDateInput.min = `${currentYear}-${String(currentMonth+1).padStart(2, '0')}-01`;
+            specificDateInput.max = `${currentYear}-${String(currentMonth+1).padStart(2, '0')}-${new Date(currentYear, currentMonth+1, 0).getDate()}`;
+            
+            updateCalendar();
+            setupEventListeners();
+            updateSpecificDatesList();
+        }
+        
+        // Update calendar display
+        function updateCalendar() {
+            // Update month/year header
+            const monthNames = ["January", "February", "March", "April", "May", "June",
+                              "July", "August", "September", "October", "November", "December"];
+            monthYearElement.textContent = `${monthNames[currentMonth]} ${currentYear}`;
+            
+            // Update both calendar grids
+            updateCalendarGrid(mainCalendarGrid, true);
+            updateCalendarGrid(compactCalendarGrid, false);
+            
+            // Update summary
+            updateSummary();
+            
+            // Update work days selector
+            updateWorkDaysSelector();
+            
+            // Update half-day buttons
+            updateHalfDayButtons();
+        }
+        
+        // Update a specific calendar grid
+        function updateCalendarGrid(gridElement, isMain) {
+            // Clear previous calendar days (keeping headers)
+            const dayElements = gridElement.querySelectorAll('.calendar-day');
+            dayElements.forEach(day => day.remove());
+            
+            // Get first day of month and total days in month
+            const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+            const today = new Date();
+            
+            // Add empty cells for days before the first day of the month
+            for (let i = 0; i < firstDay; i++) {
+                const emptyDay = document.createElement('div');
+                emptyDay.className = 'calendar-day non-working';
+                gridElement.appendChild(emptyDay);
+            }
+            
+            // Add cells for each day of the month
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayDate = new Date(currentYear, currentMonth, day);
+                const dayOfWeek = dayDate.getDay();
+                const dateKey = `${currentYear}-${String(currentMonth+1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                
+                // Determine day type
+                let dayType = '';
+                let dayInfo = '';
+                let dayClass = 'calendar-day';
+                
+                // Check if it's today
+                const isToday = dayDate.getDate() === today.getDate() &&
+                               dayDate.getMonth() === today.getMonth() &&
+                               dayDate.getFullYear() === today.getFullYear();
+                
+                if (isToday) {
+                    dayClass += ' today';
+                }
+                
+                // Check if there's a specific date override
+                if (specificDates[dateKey]) {
+                    const specificType = specificDates[dateKey].type;
+                    
+                    if (specificType === 'full') {
+                        dayType = 'working-day';
+                        dayInfo = 'Working Day';
+                    } else if (specificType === 'morning') {
+                        dayType = 'half-day-morning';
+                        dayInfo = 'Half Day';
+                    } else if (specificType === 'afternoon') {
+                        dayType = 'half-day-afternoon';
+                        dayInfo = 'Half Day';
+                    }
+                }
+                // Check if it's a regular working day
+                else if (workingDays.includes(dayOfWeek)) {
+                    // Check if it's a half-day
+                    if (halfDayType && selectedHalfDay === dayOfWeek) {
+                        if (halfDayType === 'morning') {
+                            dayType = 'half-day-morning';
+                            dayInfo = 'Half Day';
+                        } else if (halfDayType === 'afternoon') {
+                            dayType = 'half-day-afternoon';
+                            dayInfo = 'Half Day';
+                        }
+                    } else {
+                        dayType = 'working-day';
+                        dayInfo = 'Working Day';
+                    }
+                }
+                // Check if it's a weekend (Saturday or Sunday)
+                else if (dayOfWeek === 0 || dayOfWeek === 6) {
+                    dayType = 'weekend';
+                    dayInfo = 'Weekend';
+                }
+                // Otherwise it's a non-working weekday
+                else {
+                    dayType = 'non-working';
+                    dayInfo = 'Non-Working';
+                }
+                
+                // Create day element
+                const dayElement = document.createElement('div');
+                dayElement.className = `${dayClass} ${dayType}`;
+                dayElement.setAttribute('data-date', dateKey);
+                dayElement.setAttribute('data-day', day);
+                
+                // Add half-day indicator for main calendar
+                let halfDayIndicator = '';
+                if (isMain && (dayType === 'half-day-morning' || dayType === 'half-day-afternoon')) {
+                    halfDayIndicator = `<div class="half-day-indicator">${dayType === 'half-day-morning' ? 'AM' : 'PM'}</div>`;
+                }
+                
+                // Different content for main vs compact calendar
+                if (isMain) {
+                    dayElement.innerHTML = `
+                        ${halfDayIndicator}
+                        <div class="day-number">${day}</div>
+                        <div class="day-info ${dayType}-info">${dayInfo}</div>
+                    `;
+                } else {
+                    // Compact version - simpler display
+                    const shortDayName = ['S', 'M', 'T', 'W', 'T', 'F', 'S'][dayOfWeek];
+                    let compactInfo = '';
+                    
+                    if (dayType === 'working-day') {
+                        compactInfo = '<div class="day-info working-info">W</div>';
+                    } else if (dayType === 'half-day-morning') {
+                        compactInfo = '<div class="day-info half-day-morning-info">H</div>';
+                    } else if (dayType === 'half-day-afternoon') {
+                        compactInfo = '<div class="day-info half-day-afternoon-info">H</div>';
+                    } else if (dayType === 'weekend') {
+                        compactInfo = '<div class="day-info weekend-info">S</div>';
+                    }
+                    
+                    dayElement.innerHTML = `
+                        <div class="day-number">${day}</div>
+                        ${compactInfo}
+                    `;
+                }
+                
+                gridElement.appendChild(dayElement);
+            }
+        }
+        
+        // Update summary statistics
+        function updateSummary() {
+            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+            let workingDaysCount = 0;
+            let halfDaysCount = 0;
+            let nonWorkingCount = 0;
+            
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayDate = new Date(currentYear, currentMonth, day);
+                const dayOfWeek = dayDate.getDay();
+                const dateKey = `${currentYear}-${String(currentMonth+1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                
+                // Check if there's a specific date override
+                if (specificDates[dateKey]) {
+                    const specificType = specificDates[dateKey].type;
+                    
+                    if (specificType === 'full') {
+                        workingDaysCount++;
+                    } else if (specificType === 'morning' || specificType === 'afternoon') {
+                        halfDaysCount++;
+                    }
+                }
+                // Check if it's a regular working day
+                else if (workingDays.includes(dayOfWeek)) {
+                    // Check if it's a half-day
+                    if (halfDayType && selectedHalfDay === dayOfWeek) {
+                        halfDaysCount++;
+                    } else {
+                        workingDaysCount++;
+                    }
+                }
+                // Count non-working days (weekends + non-working weekdays)
+                else {
+                    nonWorkingCount++;
+                }
+            }
+            
+            // Update summary elements
+            totalDaysElement.textContent = daysInMonth;
+            workingDaysElement.textContent = workingDaysCount;
+            halfDaysElement.textContent = halfDaysCount;
+            nonWorkingElement.textContent = nonWorkingCount;
+        }
+        
+        // Update work days selector display
+        function updateWorkDaysSelector() {
+            const daySelectors = document.querySelectorAll('.day-selector');
+            daySelectors.forEach(selector => {
+                const day = parseInt(selector.getAttribute('data-day'));
+                if (workingDays.includes(day)) {
+                    selector.classList.add('selected');
+                } else {
+                    selector.classList.remove('selected');
+                }
+            });
+        }
+        
+        // Update half-day buttons
+        function updateHalfDayButtons() {
+            halfMorningBtn.classList.remove('active');
+            halfAfternoonBtn.classList.remove('active');
+            
+            if (halfDayType === 'morning') {
+                halfMorningBtn.classList.add('active');
+            } else if (halfDayType === 'afternoon') {
+                halfAfternoonBtn.classList.add('active');
+            }
+        }
+        
+        // Update specific dates list display
+        function updateSpecificDatesList() {
+            specificDatesList.innerHTML = '';
+            
+            Object.keys(specificDates).forEach(dateKey => {
+                const dateObj = specificDates[dateKey];
+                const date = new Date(dateKey);
+                const formattedDate = date.toLocaleDateString('en-US', { 
+                    month: 'short', 
+                    day: 'numeric',
+                    year: 'numeric'
+                });
+                
+                const typeText = dateObj.type === 'full' ? 'Full Day' : 
+                                dateObj.type === 'morning' ? 'Morning Half' : 'Afternoon Half';
+                
+                const dateTag = document.createElement('div');
+                dateTag.className = 'date-tag';
+                dateTag.innerHTML = `
+                    ${formattedDate} - ${typeText}
+                    <span class="remove-date" data-date="${dateKey}">
+                        <i class="fas fa-times"></i>
+                    </span>
+                `;
+                
+                specificDatesList.appendChild(dateTag);
+            });
+            
+            // Add event listeners to remove buttons
+            document.querySelectorAll('.remove-date').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const dateToRemove = this.getAttribute('data-date');
+                    delete specificDates[dateToRemove];
+                    updateSpecificDatesList();
+                    updateCalendar();
+                });
+            });
+        }
+        
+        // Setup event listeners
+        function setupEventListeners() {
+            // Previous month button
+            prevMonthBtn.addEventListener('click', () => {
+                currentMonth--;
+                if (currentMonth < 0) {
+                    currentMonth = 11;
+                    currentYear--;
+                }
+                updateCalendar();
+            });
+            
+            // Next month button
+            nextMonthBtn.addEventListener('click', () => {
+                currentMonth++;
+                if (currentMonth > 11) {
+                    currentMonth = 0;
+                    currentYear++;
+                }
+                updateCalendar();
+            });
+            
+            // Today button
+            todayBtn.addEventListener('click', () => {
+                currentDate = new Date();
+                currentMonth = currentDate.getMonth();
+                currentYear = currentDate.getFullYear();
+                updateCalendar();
+            });
+            
+            // Work days selector
+            workDaysSelector.addEventListener('click', (e) => {
+                if (e.target.classList.contains('day-selector')) {
+                    const day = parseInt(e.target.getAttribute('data-day'));
+                    
+                    // Toggle selection
+                    if (workingDays.includes(day)) {
+                        workingDays = workingDays.filter(d => d !== day);
+                    } else {
+                        workingDays.push(day);
+                        workingDays.sort((a, b) => a - b);
+                    }
+                    
+                    updateCalendar();
+                }
+            });
+            
+            // Toggle compact mode
+            toggleCompactBtn.addEventListener('click', () => {
+                if (mainCalendar.style.display === 'none') {
+                    // Show main calendar
+                    mainCalendar.style.display = 'block';
+                    toggleCompactBtn.innerHTML = '<i class="fas fa-compress"></i>';
+                } else {
+                    // Hide main calendar
+                    mainCalendar.style.display = 'none';
+                    toggleCompactBtn.innerHTML = '<i class="fas fa-expand"></i>';
+                }
+            });
+            
+            // Half-day morning button
+            halfMorningBtn.addEventListener('click', () => {
+                if (halfDayType === 'morning') {
+                    halfDayType = null;
+                    selectedHalfDay = null;
+                } else {
+                    halfDayType = 'morning';
+                    // Ask user to select a day for half-day
+                    const daySelection = prompt("Enter day number (0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat) for morning half-day:", "1");
+                    if (daySelection !== null) {
+                        selectedHalfDay = parseInt(daySelection);
+                        if (selectedHalfDay >= 0 && selectedHalfDay <= 6) {
+                            updateCalendar();
+                        } else {
+                            alert("Invalid day. Please enter a number between 0 and 6.");
+                            halfDayType = null;
+                            selectedHalfDay = null;
+                        }
+                    }
+                }
+                updateHalfDayButtons();
+            });
+            
+            // Half-day afternoon button
+            halfAfternoonBtn.addEventListener('click', () => {
+                if (halfDayType === 'afternoon') {
+                    halfDayType = null;
+                    selectedHalfDay = null;
+                } else {
+                    halfDayType = 'afternoon';
+                    // Ask user to select a day for half-day
+                    const daySelection = prompt("Enter day number (0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat) for afternoon half-day:", "1");
+                    if (daySelection !== null) {
+                        selectedHalfDay = parseInt(daySelection);
+                        if (selectedHalfDay >= 0 && selectedHalfDay <= 6) {
+                            updateCalendar();
+                        } else {
+                            alert("Invalid day. Please enter a number between 0 and 6.");
+                            halfDayType = null;
+                            selectedHalfDay = null;
+                        }
+                    }
+                }
+                updateHalfDayButtons();
+            });
+            
+            // Clear half-day button
+            clearHalfDayBtn.addEventListener('click', () => {
+                halfDayType = null;
+                selectedHalfDay = null;
+                updateCalendar();
+            });
+            
+            // Add specific date button
+            addSpecificDateBtn.addEventListener('click', () => {
+                const dateValue = specificDateInput.value;
+                const dayType = dayTypeSelect.value;
+                
+                if (dateValue) {
+                    specificDates[dateValue] = {type: dayType};
+                    updateSpecificDatesList();
+                    updateCalendar();
+                } else {
+                    alert("Please select a date first.");
+                }
+            });
+            
+            // Click on calendar days to toggle working status
+            mainCalendarGrid.addEventListener('click', (e) => {
+                const dayElement = e.target.closest('.calendar-day');
+                if (dayElement && dayElement.getAttribute('data-date')) {
+                    const dateKey = dayElement.getAttribute('data-date');
+                    const day = parseInt(dayElement.getAttribute('data-day'));
+                    
+                    // Check if this date already has a specific override
+                    if (specificDates[dateKey]) {
+                        // Cycle through types: full -> morning -> afternoon -> remove
+                        const currentType = specificDates[dateKey].type;
+                        if (currentType === 'full') {
+                            specificDates[dateKey].type = 'morning';
+                        } else if (currentType === 'morning') {
+                            specificDates[dateKey].type = 'afternoon';
+                        } else if (currentType === 'afternoon') {
+                            delete specificDates[dateKey];
+                        }
+                    } else {
+                        // Add as a full working day by default
+                        specificDates[dateKey] = {type: 'full'};
+                    }
+                    
+                    updateSpecificDatesList();
+                    updateCalendar();
+                }
+            });
+            
+            // Compact calendar day click - expand main calendar
+            compactCalendarGrid.addEventListener('click', (e) => {
+                const dayElement = e.target.closest('.calendar-day');
+                if (dayElement && dayElement.getAttribute('data-date')) {
+                    // Show main calendar
+                    mainCalendar.style.display = 'block';
+                    toggleCompactBtn.innerHTML = '<i class="fas fa-compress"></i>';
+                    
+                    // Scroll to main calendar
+                    mainCalendar.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        }
+        
+        // Initialize the calendar when page loads
+        document.addEventListener('DOMContentLoaded', initCalendar);
+    </script>
+</body>
+</html>
