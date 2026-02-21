@@ -35,14 +35,18 @@ const page = () => {
           />
           {IsExsistingUser !== null && 
              <input
-              style={{display: IsExsistingUser ? 'block' : 'none'}}
               id="PasswordField"
               placeholder="Password"
               type="password"
               className={style.Input}
             />
           }
-          {IsExsistingUser !== null && !IsExsistingUser && <div className={style.ForgotPassword}>Forgot password ?</div>}
+          {IsExsistingUser !== null && IsExsistingUser === false && <input
+              id="OtpField"
+              placeholder="OTP"
+              type="text"
+              className={style.Input}
+            />}
 
           <button className={style.LoginBtn}>Login</button>
 
