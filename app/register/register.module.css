@@ -1,0 +1,87 @@
+@import "tailwindcss";
+
+.LoginWrapper {
+  height: 100vh;
+  width: 100%;
+  background-color: #f3f3f3;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.LoginModal {
+  background-color: #ffffff;
+  padding: 30px;
+  min-width: 400px;
+  border-radius: 6px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+.FormBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.Input {
+  padding: 14px;
+  border-radius: 4px;
+  border: 1px solid #d3d3d3;
+  font-size: 14px;
+  outline: none;
+}
+
+.Input:focus {
+  border-color: #6c5ce7;
+}
+
+.CaptchaRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.CaptchaText {
+  font-size: 20px;
+  font-weight: bold;
+  color: #9acd32;
+  letter-spacing: 2px;
+}
+
+.RefreshBtn {
+  border: none;
+  background: none;
+  font-size: 18px;
+  cursor: pointer;
+  color: #6c5ce7;
+}
+
+.CaptchaInput {
+  flex: 1;
+  padding: 12px;
+  border-radius: 4px;
+  border: 1px solid #d3d3d3;
+  font-size: 14px;
+  outline: none;
+}
+
+.LoginBtn {
+  margin-top: 10px;
+  padding: 14px;
+  background-color: #5e4bb6;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.LoginBtn:hover {
+  background-color: #4a39a5;
+}
+
+.ForgotPassword {
+  color: #5e4bb6;
+  cursor: pointer;
+}
