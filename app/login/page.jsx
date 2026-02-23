@@ -1,13 +1,14 @@
 "use client";
 import React from "react";
 import style from "./login.module.css";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 const page = () => {
   const router = useRouter();
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-
+  const [message, setMessage] = useState('');
+  const [messageType, setMessageType] = useState('');
   const [IsExsistingUser, setIsExsistingUser] = useState(null);
 
   const FocusChanged = async (e) => {
@@ -59,9 +60,11 @@ const page = () => {
     });
 
     const data = await res.json();
-    SaveCredentials(data);
- 
     console.log(data);
+    if(data.error && data.error === "Invalid credentials") {
+      return setMessage("Invalid email or password. Please try again.");
+    }
+    SaveCredentials(data);
     router.push("/dashboard");
   };
 
@@ -75,14 +78,8 @@ const page = () => {
         "Employee ID found in login response:",
         result.Employee.employeeId,
       );
-      localStorage.setItem(
-        "currentEmployeeId",
-        result.Employee.employeeId,
-      );
-      localStorage.setItem(
-        "employeeData",
-        JSON.stringify(result.Employee),
-      );
+      localStorage.setItem("currentEmployeeId", result.Employee.employeeId);
+      localStorage.setItem("employeeData", JSON.stringify(result.Employee));
     } else if (result.employeeId) {
       // Alternative: check if employeeId is at root level
       console.log("Employee ID at root level:", result.employeeId);
@@ -100,7 +97,7 @@ const page = () => {
     else if (result.user?.role) {
       userRole = result.user.role;
     }
-   
+
     localStorage.setItem("userRole", userRole);
 
     // Store company ID
@@ -145,6 +142,9 @@ const page = () => {
             />
           )}
 
+          {message && (
+            <div className={`message message-${messageType}`}>{message}</div>
+          )}
           <button
             className={style.LoginBtn}
             onClick={() => OnLoginButtonClick()}
