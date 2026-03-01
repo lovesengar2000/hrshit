@@ -454,6 +454,9 @@ tbody tr:hover {
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
+ body {
+    margin: 0;;
+  }
 
 @keyframes spin {
   to {
@@ -478,10 +481,12 @@ tbody tr:hover {
   .sidebar {
     width: 100%;
     height: auto;
-    position: relative;
     display: flex;
     align-items: center;
     gap: 1rem;
+    position: static;
+    padding: 0;
+
   }
 
   .sidebar-menu {
@@ -492,5 +497,9 @@ tbody tr:hover {
 
   .dashboard-container {
     width: 100%;
+  }
+  body {
+    padding: 0;
+    margin: 0;;
   }
 }
