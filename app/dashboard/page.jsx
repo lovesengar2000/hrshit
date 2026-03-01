@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import authAPI from "../../lib/authAPI";
 import Navbar from "../../components/Navbar";
 
 export default function Dashboard() {
   const router = useRouter();
   // Temporary dev flag: set to false or remove to re-enable auth redirects
   // const DEV_BYPASS = true;
+  const [role, setRole] = useState(null);
   const [user, setUser] = useState(null);
   const [employee, setEmployee] = useState(null);
   const [leaves, setLeaves] = useState([]);
@@ -55,6 +55,7 @@ export default function Dashboard() {
 
       if (userdata.status === 200) {
         console.log("User Data:", userDataJson);
+        setRole(userDataJson.roles);
         setUser(userDataJson.user);
         setEmployee(userDataJson.Employee);
       }
@@ -76,7 +77,8 @@ export default function Dashboard() {
       // Load leave balance
 
       // const balanceData = await authAPI.getLeaveBalance(companyId, userId);
-      const LeaveBalanceData = await fetch(`/api/users/leaves/leaveBalance?userId=${userId}&companyId=${companyId}`,
+      const LeaveBalanceData = await fetch(
+        `/api/users/leaves/leaveBalance?userId=${userId}&companyId=${companyId}`,
         {
           method: "GET",
           credentials: "include",
@@ -91,27 +93,30 @@ export default function Dashboard() {
 
       // Load attendance
       // const attendanceData = await authAPI.getAttendance(companyId, userId);
-      const GetAttendance = await fetch(`/api/users/attendance?userId=${userId}&companyId=${companyId}`,
-        {
-          method: "GET",
-          credentials: "include",
-        },
-      );
-      const getAttendanceData = await GetAttendance.json();
+      if (userDataJson.Employee && userDataJson.Employee.employeeId) {
+        const GetAttendance = await fetch(
+          `/api/users/attendance?companyId=${companyId}&employeeId=${userDataJson.Employee.employeeId}`,
+          {
+            method: "GET",
+            credentials: "include",
+          },
+        );
+        const getAttendanceData = await GetAttendance.json();
 
-      // const attendanceData = await authAPI.getAttendance(companyId, userId);
-      if (GetAttendance.status === 200) {
-        console.log("Attendance Data:", getAttendanceData);
-        setAttendance(getAttendanceData);
-        // Check clock status
-        const today = new Date().toDateString();
-        const todayRecord = getAttendanceData.filter(
-          (a) => new Date(a.eventTime).toDateString() === today,
-        )[0];
-        if (todayRecord?.eventType === "CLOCK_OUT") {
-          setClockStatus("clocked-out");
-        } else if (todayRecord?.eventType === "CLOCK_IN") {
-          setClockStatus("clocked-in");
+        // const attendanceData = await authAPI.getAttendance(companyId, userId);
+        if (GetAttendance.status === 200) {
+          console.log("Attendance Data:", getAttendanceData);
+          setAttendance(getAttendanceData);
+          // Check clock status
+          const today = new Date().toDateString();
+          const todayRecord = getAttendanceData.filter(
+            (a) => new Date(a.eventTime).toDateString() === today,
+          )[0];
+          if (todayRecord?.eventType === "CLOCK_OUT") {
+            setClockStatus("clocked-out");
+          } else if (todayRecord?.eventType === "CLOCK_IN") {
+            setClockStatus("clocked-in");
+          }
         }
       }
     } catch (error) {
@@ -128,11 +133,13 @@ export default function Dashboard() {
       // const companyId = authAPI.getCompanyId();
       // const result = await authAPI.clockIn(companyId, userId);
 
-      const userdata = await fetch(`/api/users/attendance/clockIn?companyId=${employee.companyId}&employeeId=${employee.employeeId}`, {
-        method: "GET",
-        credentials: "include", // IMPORTANT
-      });
-
+      const userdata = await fetch(
+        `/api/users/attendance/clockIn?companyId=${employee.companyId}&employeeId=${employee.employeeId}`,
+        {
+          method: "GET",
+          credentials: "include", // IMPORTANT
+        },
+      );
 
       if (userdata.status === 200) {
         setClockStatus("clocked-in");
@@ -148,10 +155,13 @@ export default function Dashboard() {
 
   const handleClockOut = async () => {
     try {
-       const userdata = await fetch(`/api/users/attendance/clockOut?companyId=${employee.companyId}&employeeId=${employee.employeeId}`, {
-        method: "GET",
-        credentials: "include", // IMPORTANT
-      });
+      const userdata = await fetch(
+        `/api/users/attendance/clockOut?companyId=${employee.companyId}&employeeId=${employee.employeeId}`,
+        {
+          method: "GET",
+          credentials: "include", // IMPORTANT
+        },
+      );
 
       if (userdata.status === 200) {
         setClockStatus("clocked-out");
@@ -165,10 +175,22 @@ export default function Dashboard() {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      console.log("Logging out...");
+      await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+  };
+
   if (loading) {
     return (
       <div>
-        <Navbar onLogout={() => router.push("/")} />
+        <Navbar onLogout={() => handleLogout()} />
         <div className="loading">
           <div className="spinner"></div>
         </div>
@@ -178,10 +200,10 @@ export default function Dashboard() {
 
   return (
     <div>
-      <Navbar onLogout={() => router.push("/")} />
+      <Navbar onLogout={() => handleLogout()} />
       <div className="dashboard-layout">
         <aside className="sidebar">
-          <div className="sidebar-brand">keka</div>
+          <div className="sidebar-brand">HR Management</div>
           <ul className="sidebar-menu">
             <li className="active">Home</li>
             <li>Inbox</li>
@@ -201,27 +223,49 @@ export default function Dashboard() {
           </div>
 
           <div className="dashboard-content">
-            {/* Attendance Card */}
-            <div className="card">
-              <h3>Attendance</h3>
-              <div className="attendance-info">
+            {role === "COMPANY_ADMIN" && (
+              <div className="admin-alert">
+                <h2>Admin Access</h2>
                 <p>
-                  Status: <strong>{clockStatus}</strong>
+                  You have administrative privileges. Please use the admin
+                  dashboard for company management tasks.
                 </p>
-                {clockStatus === "not-clocked-in" && (
-                  <button className="btn btn-primary" onClick={handleClockIn}>
-                    Clock In
-                  </button>
-                )}
-                {clockStatus === "clocked-in" && (
-                  <button className="btn btn-warning" onClick={handleClockOut}>
-                    Clock Out
-                  </button>
-                )}
+                <button
+                  className="btn btn-primary"
+                  onClick={() => router.push("/admin")}
+                >
+                  Go to Admin Dashboard
+                </button>
               </div>
-            </div>
+            )}
+
+            {/* Attendance Card */}
+            {role === "USER" && (
+              <div className="card">
+                <h3>Attendance</h3>
+                <div className="attendance-info">
+                  <p>
+                    Status: <strong>{clockStatus}</strong>
+                  </p>
+                  {clockStatus === "not-clocked-in" && (
+                    <button className="btn btn-primary" onClick={handleClockIn}>
+                      Clock In
+                    </button>
+                  )}
+                  {clockStatus === "clocked-in" && (
+                    <button
+                      className="btn btn-warning"
+                      onClick={handleClockOut}
+                    >
+                      Clock Out
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* Leave Balance Card */}
+            {role === "USER" && (
             <div className="card">
               <h3>Leave Balance</h3>
               {leaves && Object.keys(leaves).length > 0 ? (
@@ -229,16 +273,22 @@ export default function Dashboard() {
                   {Object.entries(leaves).map(([key, value]) => (
                     <div key={value.leaveTypeId} className="balance-item">
                       <span>{value.name}:</span>
-                      <strong>{value.maxDaysPerYear - (leaveBalance.filter(t => t.leaveTypeId === value.leaveTypeId).length || 0)}</strong>
+                      <strong>
+                        {value.maxDaysPerYear -
+                          (leaveBalance.filter(
+                            (t) => t.leaveTypeId === value.leaveTypeId,
+                          ).length || 0)}
+                      </strong>
                     </div>
                   ))}
                 </div>
               ) : (
                 <p className="no-data">No leave balance data</p>
               )}
-            </div>
+            </div>)}
 
             {/* Quick Actions */}
+             {role === "USER" && (
             <div className="card">
               <h3>Quick Actions</h3>
               <div className="action-buttons">
@@ -267,11 +317,12 @@ export default function Dashboard() {
                   Assets
                 </button>
               </div>
-            </div>
+            </div>)}
           </div>
 
           {/* Recent Leaves */}
-          {leaveBalance.length > 0 && (
+          
+          {role === "USER" && leaveBalance.length > 0 && (
             <div className="card full-width">
               <h3>Recent Leave Applications</h3>
               <div className="table-container">
@@ -288,7 +339,13 @@ export default function Dashboard() {
                   <tbody>
                     {leaveBalance.slice(0, 5).map((leave) => (
                       <tr key={leave.leaveRequestId}>
-                        <td>{leaves.find((l) => l.leaveTypeId === leave.leaveTypeId)?.name}</td>
+                        <td>
+                          {
+                            leaves.find(
+                              (l) => l.leaveTypeId === leave.leaveTypeId,
+                            )?.name
+                          }
+                        </td>
                         <td>
                           {new Date(leave.startDate).toLocaleDateString()}
                         </td>

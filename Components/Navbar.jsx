@@ -1,10 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 
 export default function Navbar({ onLogout }) {
-  const router = useRouter();
 
   return (
     <nav className="navbar">
@@ -19,8 +17,7 @@ export default function Navbar({ onLogout }) {
           <button
             className="btn btn-secondary btn-small"
             onClick={() => {
-              router.push('/');
-              onLogout?.();
+              onLogout();
             }}
           >
             Logout

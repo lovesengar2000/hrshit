@@ -5,15 +5,15 @@ export async function GET(request) {
     const employeeId = searchParams.get("employeeId");
 
     const token = request.cookies.get("authToken")?.value;
-console.log("Fetching attendance events for companyId:", companyId, "employeeId:", employeeId);
     const response = await fetch(
-       `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/attendance/events?companyId=${companyId}&employeeId=${employeeId}`,
+       `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/attendance/getEmployeeEvents`,
       {
-        method: "GET",
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
+        body: JSON.stringify({ companyId, employeeId }),
       },
     );
     const FetchDetails = await response.json();
