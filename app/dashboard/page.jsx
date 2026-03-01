@@ -17,6 +17,7 @@ export default function Dashboard() {
   const [clockStatus, setClockStatus] = useState("not-clocked-in");
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
+  const [expandedMenu, setExpandedMenu] = useState(null);
 
   useEffect(() => {
     // if (DEV_BYPASS) {
@@ -206,6 +207,21 @@ export default function Dashboard() {
           <div className="sidebar-brand">HR Management</div>
           <ul className="sidebar-menu">
             <li className="active">Home</li>
+            <li className="menu-item-with-submenu">
+              <div 
+                className="menu-item-header"
+                onClick={() => setExpandedMenu(expandedMenu === 'me' ? null : 'me')}
+              >
+                Me
+                <span className={`arrow ${expandedMenu === 'me' ? 'expanded' : ''}`}>›</span>
+              </div>
+              {expandedMenu === 'me' && (
+                <ul className="submenu">
+                  <li onClick={() => router.push('/me/attendance')}>Attendance</li>
+                  <li onClick={() => router.push('/me/leave')}>Leave</li>
+                </ul>
+              )}
+            </li>
             <li>Inbox</li>
             <li>My Team</li>
             <li>My Finances</li>
