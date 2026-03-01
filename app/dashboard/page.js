@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import authAPI from '@/lib/authAPI';
-import Navbar from '@/components/Navbar';
+import authAPI from '../../lib/authAPI';
+import Navbar from '../../components/Navbar';
 
 export default function Dashboard() {
   const router = useRouter();
   // Temporary dev flag: set to false or remove to re-enable auth redirects
-  const DEV_BYPASS = true;
+  // const DEV_BYPASS = true;
   const [user, setUser] = useState(null);
   const [leaves, setLeaves] = useState([]);
   const [leaveBalance, setLeaveBalance] = useState({});
@@ -18,36 +18,39 @@ export default function Dashboard() {
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    if (DEV_BYPASS) {
-      loadDashboardData();
-      return;
-    }
+    // if (DEV_BYPASS) {
+    //   loadDashboardData();
+    //   return;
+    // }
 
-    if (!authAPI.isAuthenticated()) {
-      router.push('/');
-      return;
-    }
+    // if (!authAPI.isAuthenticated()) {
+    //   router.push('/');
+    //   return;
+    // }
 
-    if (authAPI.isAdmin()) {
-      router.push('/admin');
-      return;
-    }
+    // if (authAPI.isAdmin()) {
+    //   router.push('/admin');
+    //   return;
+    // }
 
     loadDashboardData();
   }, [router]);
 
   const loadDashboardData = async () => {
     setLoading(true);
+    const userdata = await fetch('/api/users/getData',{
+      method: "GET",
+      credentials: "include", // IMPORTANT
+    }); 
+    const RecivedCokieData = await userdata.json();
+    const userDataJson = JSON.parse(RecivedCokieData) ;
+    console.log("User Data:", userDataJson);
     try {
-      const userId = authAPI.getUserId();
-      const companyId = authAPI.getCompanyId();
+      const userId = userDataJson.user.userId;
+      const companyId = userDataJson.user.companyId;
 
-      // Load user data
-      const userData = await authAPI.getUserData(userId, companyId);
-      if (userData.success) {
-        setUser(userData.data);
-      }
-
+      setUser(userDataJson.Employee);
+      
       // Load leaves
       const leavesData = await authAPI.getUserLeaves(companyId, userId);
       if (leavesData.success) {

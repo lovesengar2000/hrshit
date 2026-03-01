@@ -64,55 +64,11 @@ const page = () => {
     if(data.error && data.error === "Invalid credentials") {
       return setMessage("Invalid email or password. Please try again.");
     }
-    SaveCredentials(data);
+    // SaveCredentials(data);
     router.push("/dashboard");
   };
 
-  const SaveCredentials = (result) => {
-    localStorage.setItem("token", result.token);
-    localStorage.setItem("user", JSON.stringify(result.user));
-
-    // Extract and store employee ID if available
-    if (result.Employee && result.Employee.employeeId) {
-      console.log(
-        "Employee ID found in login response:",
-        result.Employee.employeeId,
-      );
-      localStorage.setItem("currentEmployeeId", result.Employee.employeeId);
-      localStorage.setItem("employeeData", JSON.stringify(result.Employee));
-    } else if (result.employeeId) {
-      // Alternative: check if employeeId is at root level
-      console.log("Employee ID at root level:", result.employeeId);
-      localStorage.setItem("currentEmployeeId", result.employeeId);
-    }
-
-    // Determine and store role based on response
-    let userRole = "EMPLOYEE"; // Default role
-
-    // Check if response has roles field (for admin)
-    if (result.roles) {
-      userRole = result.roles;
-    }
-    // Check role from token
-    else if (result.user?.role) {
-      userRole = result.user.role;
-    }
-
-    localStorage.setItem("userRole", userRole);
-
-    // Store company ID
-    if (result.user?.companyId) {
-      localStorage.setItem("companyId", result.user.companyId);
-    }
-
-    console.log("Login successful, stored data:", {
-      token: result.token.substring(0, 20) + "...",
-      userId: result.user?.userId,
-      employeeId: localStorage.getItem("currentEmployeeId"),
-      role: userRole,
-      companyId: localStorage.getItem("companyId"),
-    });
-  };
+ 
 
   return (
     <div className={style.LoginWrapper}>
