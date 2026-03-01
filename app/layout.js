@@ -1,4 +1,5 @@
 import './globals.css';
+import './styles/dashboard.css';
 
 export const metadata = {
   title: 'HR Dashboard',

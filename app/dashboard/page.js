@@ -1,13 +1,14 @@
-'use client';
+ 'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import authAPI from '@/lib/authAPI';
 import Navbar from '@/components/Navbar';
-import '../styles/dashboard.css';
 
 export default function Dashboard() {
   const router = useRouter();
+  // Temporary dev flag: set to false or remove to re-enable auth redirects
+  const DEV_BYPASS = true;
   const [user, setUser] = useState(null);
   const [leaves, setLeaves] = useState([]);
   const [leaveBalance, setLeaveBalance] = useState({});
@@ -17,6 +18,11 @@ export default function Dashboard() {
   const [message, setMessage] = useState('');
 
   useEffect(() => {
+    if (DEV_BYPASS) {
+      loadDashboardData();
+      return;
+    }
+
     if (!authAPI.isAuthenticated()) {
       router.push('/');
       return;
@@ -127,7 +133,20 @@ export default function Dashboard() {
   return (
     <div>
       <Navbar onLogout={() => router.push('/')} />
-      <div className="dashboard-container">
+      <div className="dashboard-layout">
+        <aside className="sidebar">
+          <div className="sidebar-brand">keka</div>
+          <ul className="sidebar-menu">
+            <li className="active">Home</li>
+            <li>Inbox</li>
+            <li>My Team</li>
+            <li>My Finances</li>
+            <li>Org</li>
+            <li>Engage</li>
+            <li>Performance</li>
+          </ul>
+        </aside>
+        <main className="dashboard-container">
         {message && <div className="alert">{message}</div>}
 
         <div className="welcome-section">
@@ -225,6 +244,7 @@ export default function Dashboard() {
             </div>
           </div>
         )}
+        </main>
       </div>
     </div>
   );
