@@ -10,6 +10,7 @@ export default function Dashboard() {
   // Temporary dev flag: set to false or remove to re-enable auth redirects
   // const DEV_BYPASS = true;
   const [user, setUser] = useState(null);
+  const [employee, setEmployee] = useState(null);
   const [leaves, setLeaves] = useState([]);
   const [leaveBalance, setLeaveBalance] = useState([]);
   const [attendance, setAttendance] = useState([]);
@@ -53,7 +54,9 @@ export default function Dashboard() {
       const companyId = userDataJson.user.companyId;
 
       if (userdata.status === 200) {
-        setUser(userDataJson.Employee);
+        console.log("User Data:", userDataJson);
+        setUser(userDataJson.user);
+        setEmployee(userDataJson.Employee);
       }
 
       // Load leaves
@@ -121,11 +124,17 @@ export default function Dashboard() {
 
   const handleClockIn = async () => {
     try {
-      const userId = authAPI.getUserId();
-      const companyId = authAPI.getCompanyId();
-      const result = await authAPI.clockIn(companyId, userId);
+      // const userId = authAPI.getUserId();
+      // const companyId = authAPI.getCompanyId();
+      // const result = await authAPI.clockIn(companyId, userId);
 
-      if (result.success) {
+      const userdata = await fetch(`/api/users/attendance/clockIn?companyId=${employee.companyId}&employeeId=${employee.employeeId}`, {
+        method: "GET",
+        credentials: "include", // IMPORTANT
+      });
+
+
+      if (userdata.status === 200) {
         setClockStatus("clocked-in");
         setMessage("Clocked in successfully");
         setTimeout(() => setMessage(""), 3000);
@@ -139,11 +148,12 @@ export default function Dashboard() {
 
   const handleClockOut = async () => {
     try {
-      const userId = authAPI.getUserId();
-      const companyId = authAPI.getCompanyId();
-      const result = await authAPI.clockOut(companyId, userId);
+       const userdata = await fetch(`/api/users/attendance/clockOut?companyId=${employee.companyId}&employeeId=${employee.employeeId}`, {
+        method: "GET",
+        credentials: "include", // IMPORTANT
+      });
 
-      if (result.success) {
+      if (userdata.status === 200) {
         setClockStatus("clocked-out");
         setMessage("Clocked out successfully");
         setTimeout(() => setMessage(""), 3000);
@@ -186,7 +196,7 @@ export default function Dashboard() {
           {message && <div className="alert">{message}</div>}
 
           <div className="welcome-section">
-            <h1>Welcome, {user?.name || user?.email}!</h1>
+            <h1>Welcome, {employee?.name || employee?.email}!</h1>
             <p>Your HR Dashboard</p>
           </div>
 
